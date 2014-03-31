@@ -1,0 +1,129 @@
+{
+	"name": "Keboola Orchestrator",
+	"apiVersion": "2014-03-28",
+	"baseUrl": "https://syrup.keboola.com/orchestrator",
+	"description": "Keboola Orchestrator API PHP Client",
+	"operations": {
+		"GetOrchestrations": {
+			"httpMethod": "GET",
+			"uri": "orchestrations",
+			"summary": "Get registered orchestrations"
+		},
+		"GetOrchestration": {
+			"httpMethod": "GET",
+			"uri": "orchestrations/{orchestrationId}",
+			"summary": "Get orchestration details",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
+		"CreateOrchestration": {
+			"httpMethod": "POST",
+			"uri": "orchestrations",
+			"summary": "Orchestrator registration",
+			"parameters": {
+				"crontabRecord": {
+					"location": "json",
+					"type": "string",
+					"required": true
+				},
+				"configurationId": {
+					"location": "json",
+					"type": "string",
+					"required": true
+				},
+				"name": {
+					"location": "json",
+					"type": "string",
+					"required": false
+				}
+			}
+		},
+		"UpdateOrchestration": {
+			"httpMethod": "PUT",
+			"uri": "orchestrations/{orchestrationId}",
+			"summary": "Update orchestration",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				},
+				"active": {
+					"location": "json",
+					"type": "boolean",
+					"required": false
+				},
+				"crontabRecord": {
+					"location": "json",
+					"type": "string",
+					"required": false
+				}
+			}
+		},
+		"DeleteOrchestration": {
+			"httpMethod": "DELETE",
+			"uri": "orchestrations/{orchestrationId}",
+			"summary": "Delete orchestration",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
+		"GetOrchestrationJobs": {
+			"httpMethod": "GET",
+			"uri": "orchestrations/{orchestrationId}/jobs",
+			"summary": "List orchestration jobs",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
+		"GetJob": {
+			"httpMethod": "GET",
+			"uri": "jobs/{jobId}",
+			"summary": "Get job details",
+			"parameters": {
+				"jobId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
+		"CreateJob": {
+			"httpMethod": "POST",
+			"uri": "orchestrations/{orchestrationId}/jobs",
+			"summary": "Manualy execute orchestration",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
+		"CancelJob": {
+			"httpMethod": "DELETE",
+			"uri": "jobs/{jobId}",
+			"summary": "Cancel waiting job",
+			"parameters": {
+				"jobId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		}
+	}
+}
