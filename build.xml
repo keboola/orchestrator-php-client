@@ -56,11 +56,4 @@
 			<arg path="${basedir}/phpunit.xml.dist"/>
 		</exec>
 	</target>
-
-	<target name="phpunit-wait" description="Run unit tests with PHPUnit">
-		<exec executable="phpunit" failonerror="true">
-			<arg value="--configuration"/>
-			<arg path="${basedir}/phpunit-wait.xml.dist"/>
-		</exec>
-	</target>
 </project>
