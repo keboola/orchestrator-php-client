@@ -29,15 +29,13 @@ class Client extends GuzzleClient
 		$required = array('token');
 
 		$config = Collection::fromConfig($config, $default, $required);
+		$config['curl.options'] = array(
+			CURLOPT_SSLVERSION => 3
+		);
 		$config['request.options'] = array(
 			'headers' => array(
 				'X-StorageApi-Token' => $config->get('token')
-			),
-			'config' => array(
-				'curl' => array(
-					CURLOPT_SSLVERSION => 3
-				)
-			),
+			)
 		);
 		$client = new self($config->get('url'), $config);
 
