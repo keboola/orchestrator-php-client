@@ -218,7 +218,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-		$this->assertEquals('canceled', $job['status'], "Result of API command 'getJob' should return canceled job");
+		$this->assertEquals('cancelled', $job['status'], "Result of API command 'getJob' should return cancelled job");
 
 		// job processing
 		sleep(120);
@@ -319,7 +319,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-		$this->assertEquals('canceled', $job['status'], "Result of API command 'getJob' should return canceled job");
+		$this->assertEquals('cancelled', $job['status'], "Result of API command 'getJob' should return cancelled job");
 
 		// job processing
 		sleep(120);
@@ -420,7 +420,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-		$this->assertEquals('canceled', $job['status'], "Result of API command 'getJob' should return canceled job");
+		$this->assertEquals('cancelled', $job['status'], "Result of API command 'getJob' should return cancelled job");
 
 		// job processing
 		sleep(120);
