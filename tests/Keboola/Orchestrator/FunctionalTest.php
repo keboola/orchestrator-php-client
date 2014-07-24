@@ -27,7 +27,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
 		));
 
-		$this->sapiClient = new StorageApi(FUNCTIONAL_ORCHESTRATOR_API_TOKEN);
+		$this->sapiClient = new StorageApi(FUNCTIONAL_ORCHESTRATOR_API_TOKEN, defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null);
 		$this->sapiClient->verifyToken();
 
 		$this->bucketId = 'orchestratorTest';
