@@ -26,17 +26,22 @@
 			"uri": "orchestrations",
 			"summary": "Orchestrator registration",
 			"parameters": {
+				"name": {
+					"location": "json",
+					"type": "string",
+					"required": false
+				},
 				"crontabRecord": {
 					"location": "json",
 					"type": "string",
-					"required": true
+					"required": false
 				},
 				"configurationId": {
 					"location": "json",
 					"type": "string",
-					"required": true
+					"required": false
 				},
-				"name": {
+				"tokenId": {
 					"location": "json",
 					"type": "string",
 					"required": false

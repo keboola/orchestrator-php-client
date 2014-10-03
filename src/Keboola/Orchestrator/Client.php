@@ -67,20 +67,19 @@ class Client extends GuzzleClient
 	/**
 	 * Orchestrator registration
 	 *
-	 * @param string $configurationId ID of configuration table in SAPI
-	 * @param string $crontabRecord
-	 * @param string|null $name
+	 * Available options are
+	 * 	- configurationId - existing KBC table with tasks configuration
+	 *	- crontabRecord
+	 *  - tokenId
+	 *
+	 * @param $name
+	 * @param array $options
 	 * @return array
 	 */
-	public function createOrchestration($configurationId, $crontabRecord, $name = null)
+	public function createOrchestration($name, $options = array())
 	{
-		$params = array(
-			'configurationId' => $configurationId,
-			'crontabRecord' => $crontabRecord,
-		);
-
-		if ($name !== null)
-			$params['name'] = $name;
+		$params = $options;
+		$params['name'] = $name;
 
 		$result = $this->getCommand(
 			'CreateOrchestration',
