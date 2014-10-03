@@ -186,7 +186,12 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$crontabRecord = '* * * * *';
 		$active = false;
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $active, $crontabRecord);
+		$options = array(
+			'active' => $active,
+			'crontabRecord' => $crontabRecord,
+		);
+
+		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
@@ -337,7 +342,13 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$crontabRecord = '* * * * *';
 		$active = false;
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $active, $crontabRecord);
+		$options = array(
+			'active' => $active,
+			'crontabRecord' => $crontabRecord,
+		);
+
+		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
@@ -486,7 +497,13 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$crontabRecord = '* * * * *';
 		$active = false;
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $active, $crontabRecord);
+		$options = array(
+			'active' => $active,
+			'crontabRecord' => $crontabRecord,
+		);
+
+		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");

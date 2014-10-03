@@ -58,14 +58,24 @@
 					"type": "integer",
 					"required": true
 				},
-				"active": {
+				"name": {
 					"location": "json",
-					"type": "boolean",
+					"type": "string",
 					"required": false
 				},
 				"crontabRecord": {
 					"location": "json",
 					"type": "string",
+					"required": false
+				},
+				"tokenId": {
+					"location": "json",
+					"type": "string",
+					"required": false
+				},
+				"active": {
+					"location": "json",
+					"type": "boolean",
 					"required": false
 				}
 			}

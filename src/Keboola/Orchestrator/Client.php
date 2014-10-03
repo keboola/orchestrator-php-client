@@ -92,20 +92,20 @@ class Client extends GuzzleClient
 	/**
 	 * Update orchestration
 	 *
+	 * Available options are
+	 * 	- active
+	 *	- crontabRecord
+	 *  - tokenId
+	 *  - name
+	 *
 	 * @param int $orchestrationId
-	 * @param boolean $active
-	 * @param string $crontabRecord
+	 * @param array $options
 	 * @return mixed
 	 */
-	public function updateOrchestration($orchestrationId, $active = null, $crontabRecord = null)
+	public function updateOrchestration($orchestrationId, $options = array())
 	{
-		$params = array('orchestrationId' => $orchestrationId);
-
-		if ($active !== null)
-			$params['active'] = (bool) $active;
-
-		if ($crontabRecord !== null)
-			$params['crontabRecord'] = $crontabRecord;
+		$params = $options;
+		$params['orchestrationId'] = $orchestrationId;
 
 		$result = $this->getCommand(
 			'UpdateOrchestration',
