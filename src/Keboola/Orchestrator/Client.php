@@ -30,7 +30,6 @@ class Client extends GuzzleClient
 
 		$config = Collection::fromConfig($config, $default, $required);
 		$config['curl.options'] = array(
-			CURLOPT_SSLVERSION => 3,
 			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_0,
 		);
 		$config['request.options'] = array(
