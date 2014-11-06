@@ -100,17 +100,17 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v2.5.5",
+            "version": "v2.5.6",
             "target-dir": "Symfony/Component/EventDispatcher",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/EventDispatcher.git",
-                "reference": "f6281337bf5f985f585d1db6a83adb05ce531f46"
+                "reference": "804eb28dbbfba9ffdab21fe2066744906cea2212"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/f6281337bf5f985f585d1db6a83adb05ce531f46",
-                "reference": "f6281337bf5f985f585d1db6a83adb05ce531f46",
+                "url": "https://api.github.com/repos/symfony/EventDispatcher/zipball/804eb28dbbfba9ffdab21fe2066744906cea2212",
+                "reference": "804eb28dbbfba9ffdab21fe2066744906cea2212",
                 "shasum": ""
             },
             "require": {
@@ -153,7 +153,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "http://symfony.com",
-            "time": "2014-09-28 15:56:11"
+            "time": "2014-10-01 15:43:05"
         }
     ],
     "packages-dev": [
@@ -287,27 +287,32 @@
         },
         {
             "name": "guzzlehttp/log-subscriber",
-            "version": "1.0.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/log-subscriber.git",
-                "reference": "1231bdb715a96cc7802ada6f7075fa0520bc7d1a"
+                "reference": "99c3c0004165db721d8ef7bbef60c996210e538a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/log-subscriber/zipball/1231bdb715a96cc7802ada6f7075fa0520bc7d1a",
-                "reference": "1231bdb715a96cc7802ada6f7075fa0520bc7d1a",
+                "url": "https://api.github.com/repos/guzzle/log-subscriber/zipball/99c3c0004165db721d8ef7bbef60c996210e538a",
+                "reference": "99c3c0004165db721d8ef7bbef60c996210e538a",
                 "shasum": ""
             },
             "require": {
-                "guzzlehttp/guzzle": "4.*",
+                "guzzlehttp/guzzle": "~4.0 | ~5.0",
                 "php": ">=5.4.0",
                 "psr/log": "~1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "4.*"
+                "phpunit/phpunit": "~4.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "GuzzleHttp\\Subscriber\\Log\\": "src/"
@@ -331,7 +336,7 @@
                 "log",
                 "plugin"
             ],
-            "time": "2014-03-30 00:07:41"
+            "time": "2014-10-13 03:31:43"
         },
         {
             "name": "guzzlehttp/retry-subscriber",
@@ -467,16 +472,16 @@
         },
         {
             "name": "keboola/storage-api-client",
-            "version": "2.11.20",
+            "version": "2.11.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/keboola/storage-api-php-client.git",
-                "reference": "965a5970c2d7f1855013e1e9d050d39cf078501d"
+                "reference": "3ce9f6c2b6287c4395074d6013cdd5d078874fc7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/keboola/storage-api-php-client/zipball/965a5970c2d7f1855013e1e9d050d39cf078501d",
-                "reference": "965a5970c2d7f1855013e1e9d050d39cf078501d",
+                "url": "https://api.github.com/repos/keboola/storage-api-php-client/zipball/3ce9f6c2b6287c4395074d6013cdd5d078874fc7",
+                "reference": "3ce9f6c2b6287c4395074d6013cdd5d078874fc7",
                 "shasum": ""
             },
             "require": {
@@ -503,7 +508,7 @@
             ],
             "description": "Keboola Storage API PHP CLient",
             "homepage": "http://keboola.com",
-            "time": "2014-09-16 13:37:09"
+            "time": "2014-10-31 13:51:10"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -751,16 +756,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "3.7.37",
+            "version": "3.7.38",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ae6cefd7cc84586a5ef27e04bae11ee940ec63dc"
+                "reference": "38709dc22d519a3d1be46849868aa2ddf822bcf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ae6cefd7cc84586a5ef27e04bae11ee940ec63dc",
-                "reference": "ae6cefd7cc84586a5ef27e04bae11ee940ec63dc",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/38709dc22d519a3d1be46849868aa2ddf822bcf6",
+                "reference": "38709dc22d519a3d1be46849868aa2ddf822bcf6",
                 "shasum": ""
             },
             "require": {
@@ -820,7 +825,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-04-30 12:24:19"
+            "time": "2014-10-17 09:04:17"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -911,7 +916,7 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v2.5.5",
+            "version": "v2.5.6",
             "target-dir": "Symfony/Component/Filesystem",
             "source": {
                 "type": "git",
@@ -958,17 +963,17 @@
         },
         {
             "name": "symfony/process",
-            "version": "v2.5.5",
+            "version": "v2.5.6",
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "8a1ec96c4e519cee0fb971ea48a1eb7369dda54b"
+                "reference": "9bbacbb3a7a27b17c0d51e2f126f59e0e588ad3a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/8a1ec96c4e519cee0fb971ea48a1eb7369dda54b",
-                "reference": "8a1ec96c4e519cee0fb971ea48a1eb7369dda54b",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/9bbacbb3a7a27b17c0d51e2f126f59e0e588ad3a",
+                "reference": "9bbacbb3a7a27b17c0d51e2f126f59e0e588ad3a",
                 "shasum": ""
             },
             "require": {
@@ -1001,21 +1006,21 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2014-09-23 05:25:11"
+            "time": "2014-10-01 05:50:18"
         },
         {
             "name": "symfony/yaml",
-            "version": "v2.5.5",
+            "version": "v2.5.6",
             "target-dir": "Symfony/Component/Yaml",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Yaml.git",
-                "reference": "b1dbc53593b98c2d694ebf383660ac9134d30b96"
+                "reference": "2d9f527449cabfa8543dd7fa3a466d6ae83d6726"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Yaml/zipball/b1dbc53593b98c2d694ebf383660ac9134d30b96",
-                "reference": "b1dbc53593b98c2d694ebf383660ac9134d30b96",
+                "url": "https://api.github.com/repos/symfony/Yaml/zipball/2d9f527449cabfa8543dd7fa3a466d6ae83d6726",
+                "reference": "2d9f527449cabfa8543dd7fa3a466d6ae83d6726",
                 "shasum": ""
             },
             "require": {
@@ -1048,7 +1053,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "http://symfony.com",
-            "time": "2014-09-22 09:14:18"
+            "time": "2014-10-01 05:50:18"
         }
     ],
     "aliases": [],
