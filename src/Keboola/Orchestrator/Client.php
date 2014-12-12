@@ -224,4 +224,31 @@ class Client extends GuzzleClient
 
 		return true;
 	}
+
+	/**
+	 * Update orchestration tasks
+	 *
+	 * @param int $orchestrationId
+	 * @param OrchestrationTask[] $tasks
+	 * @return mixed
+	 */
+	public function updateTasks($orchestrationId, $tasks = array())
+	{
+		foreach ($tasks AS $task) {
+			if (!$task instanceof OrchestrationTask)
+				throw new \InvalidArgumentException(sprintf('Task must be instance of %s', '\Keboola\Orchestrator\OrchestrationTask'));
+		}
+
+		$tasks = array_map(function($item) { return $item->toArray(); }, $tasks);
+
+		$params = array('tasks' => json_encode($tasks));
+		$params['orchestrationId'] = $orchestrationId;
+
+		$command = $this->getCommand(
+			'UpdateOrchestrationTasks',
+			$params
+		);
+
+		return $command->execute();
+	}
 }

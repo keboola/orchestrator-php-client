@@ -139,6 +139,23 @@
 					"required": true
 				}
 			}
-		}
+		},
+        "UpdateOrchestrationTasks": {
+            "httpMethod": "PUT",
+            "uri": "orchestrations/{orchestrationId}/tasks",
+            "summary": "Update orchestration tasks",
+            "parameters": {
+                "orchestrationId": {
+                    "location": "uri",
+                    "type": "integer",
+                    "required": true
+                },
+                "tasks": {
+                    "location": "body",
+                    "type": "string",
+                    "required": false
+                }
+            }
+        }
 	}
 }

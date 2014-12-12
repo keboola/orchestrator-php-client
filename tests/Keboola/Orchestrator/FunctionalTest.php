@@ -3,6 +3,7 @@ namespace Keboola\Orchestrator\Tests;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Keboola\Orchestrator\Client AS OrchestratorApi;
+use Keboola\Orchestrator\OrchestrationTask;
 use Keboola\StorageApi\Client AS StorageApi;
 use Keboola\StorageApi\Table;
 
@@ -18,8 +19,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 	 */
 	private $sapiClient;
 
-	private $bucketId;
-	private $bucketStage;
+	const TESTING_ORCHESTRATION_NAME = 'PHP Client test';
 
 	public function setUp()
 	{
@@ -34,140 +34,69 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		));
 		$this->sapiClient->verifyToken();
 
-		$this->bucketId = 'orchestratorTest';
-		$this->bucketStage = 'out';
-
 		// clean old tests vcetne orchestraci
 		$this->cleanWorkspace();
 	}
 
 	private function cleanWorkspace()
 	{
-		$buckets = $this->sapiClient->listBuckets();
 		$orchestrations = $this->client->getOrchestrations();
 
-		foreach ($buckets AS $bucket) {
-			if ($bucket['stage'] != $this->bucketStage || !preg_match("/{$this->bucketId}/", $bucket['id']))
+		foreach ($orchestrations AS $orchestration) {
+			if (strpos($orchestration['name'], self::TESTING_ORCHESTRATION_NAME) === false)
 				continue;
 
-			// delete orchestrations
-			foreach ($orchestrations AS $orchestration) {
-				if ($orchestration['configurationId'] != $bucket['id'] . '.test')
-					continue;
-
-				$this->client->deleteOrchestration($orchestration['id']);
-			}
-
-			// delete tables
-			$tables = $this->sapiClient->listTables($bucket['id']);
-			foreach ($tables AS $table) {
-				$this->sapiClient->dropTable($table['id']);
-			}
-
-			$this->sapiClient->dropBucket($bucket['id']);
+			$this->client->deleteOrchestration($orchestration['id']);
+			$this->sapiClient->dropTable($orchestration['configurationId']);
 		}
 	}
 
-	private function initTestData()
+	private function createTestData()
 	{
-		$this->bucketId = $this->sapiClient->createBucket($this->bucketId . uniqid(), $this->bucketStage, 'Bucket for orchestrator testing');
-
-		$data = array(
-			0 => array(
-				"id" => $this->sapiClient->generateId(),
-				"component" => null,
-				"componentUrl" => 'https://syrup.keboola.com/timeout/timer',
-				"action" => null,
-				"actionParameters" => '{"sleep":"30"}',
-				"timeoutMinutes" => null,
-				"active" => '1',
-				"continueOnFailure" => null,
-			)
+		$tasks = array(
+			(new OrchestrationTask())
+				->setComponentUrl('https://syrup.keboola.com/timeout/timer')
+				->setActionParameters(array('sleep' => 30))
 		);
 
-		$table = new Table($this->sapiClient, "{$this->bucketId}.test");
-		$table->setHeader(array_keys($data[0]));
-		$table->setFromArray($data);
-
-		$table->save(true);
+		return $tasks;
 	}
 
-	private function initTestDataWithError()
+	private function createTestDataWithError()
 	{
-		$this->bucketId = $this->sapiClient->createBucket($this->bucketId . uniqid(), $this->bucketStage, 'Bucket for orchestrator testing');
+		$tasks = array();
 
-		$data = array(
-			0 => array(
-				"id" => $this->sapiClient->generateId(),
-				"component" => null,
-				"componentUrl" => 'https://connection.keboola.com/v2/storage/tokens/',
-				"action" => null,
-				"actionParameters" => '{}',
-				"timeoutMinutes" => null,
-				"active" => '1',
-				"continueOnFailure" => null,
-			),
-			1 => array(
-				"id" => $this->sapiClient->generateId(),
-				"component" => null,
-				"componentUrl" => 'https://connection.keboola.com/v2/storage/tickets/',
-				"action" => null,
-				"actionParameters" => '{}',
-				"timeoutMinutes" => null,
-				"active" => '1',
-				"continueOnFailure" => null,
-			)
-		);
+		array_push($tasks, (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/'));
 
-		$table = new Table($this->sapiClient, "{$this->bucketId}.test");
-		$table->setHeader(array_keys($data[0]));
-		$table->setFromArray($data);
+		array_push($tasks, (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/'));
 
-		$table->save(true);
+
+		return $tasks;
 	}
 
-	private function initTestDataWithWarn()
+	private function createTestDataWithWarn()
 	{
-		$this->bucketId = $this->sapiClient->createBucket($this->bucketId . uniqid(), $this->bucketStage, 'Bucket for orchestrator testing');
+		$tasks = array();
 
-		$data = array(
-			0 => array(
-				"id" => $this->sapiClient->generateId(),
-				"component" => null,
-				"componentUrl" => 'https://connection.keboola.com/v2/storage/tokens/',
-				"action" => null,
-				"actionParameters" => '{}',
-				"timeoutMinutes" => null,
-				"active" => '1',
-				"continueOnFailure" => '1',
-			),
-			1 => array(
-				"id" => $this->sapiClient->generateId(),
-				"component" => null,
-				"componentUrl" => 'https://connection.keboola.com/v2/storage/tickets/',
-				"action" => null,
-				"actionParameters" => '{}',
-				"timeoutMinutes" => null,
-				"active" => '1',
-				"continueOnFailure" => null,
-			)
-		);
+		array_push($tasks, (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
+			->setContinueOnFailure(true));
 
-		$table = new Table($this->sapiClient, "{$this->bucketId}.test");
-		$table->setHeader(array_keys($data[0]));
-		$table->setFromArray($data);
+		array_push($tasks, (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/'));
 
-		$table->save(true);
+
+		return $tasks;
 	}
 
 	public function testOrchestrations()
 	{
-		$this->initTestData();
-
 		// create orchestration
 		$options = array(
-			'configurationId' => "{$this->bucketId}.test",
 			'crontabRecord' => '1 1 1 1 1',
+			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
 		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
@@ -175,6 +104,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// orchestrations tasks
+		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestData());
 
 		// orchestration detail
 		$orchestration = $this->client->getOrchestration($orchestration['id']);
@@ -314,16 +246,15 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrationsError()
 	{
-		$this->initTestDataWithError();
-
 		// create orchestration
 		$options = array(
-			'configurationId' => "{$this->bucketId}.test",
 			'crontabRecord' => '1 1 1 1 1',
+			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
 		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
@@ -331,6 +262,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// orchestrations tasks
+		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestDataWithError());
 
 		// orchestration detail
 		$orchestration = $this->client->getOrchestration($orchestration['id']);
@@ -452,16 +386,15 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrationsWarn()
 	{
-		$this->initTestDataWithWarn();
-
 		// create orchestration
 		$options = array(
-			'configurationId' => "{$this->bucketId}.test",
 			'crontabRecord' => '1 1 1 1 1',
+			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
 		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
@@ -469,6 +402,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// orchestrations tasks
+		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestDataWithWarn());
 
 		// orchestration detail
 		$orchestration = $this->client->getOrchestration($orchestration['id']);
@@ -607,5 +543,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 }
