@@ -120,7 +120,7 @@ class OrchestrationTask
 	 * @param bool $value
 	 * @return $this
 	 */
-	public function setContinueOnFailure($value)
+	public function setContinueOnFailure($value = true)
 	{
 		$this->continueOnFailure = (bool) $value;
 		return $this;
@@ -142,7 +142,7 @@ class OrchestrationTask
 	 * @param bool $value
 	 * @return $this
 	 */
-	public function setActive($value)
+	public function setActive($value = true)
 	{
 		$this->active = (bool) $value;
 		return $this;

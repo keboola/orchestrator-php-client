@@ -34,7 +34,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		));
 		$this->sapiClient->verifyToken();
 
-		// clean old tests vcetne orchestraci
+		// clean old tests
 		$this->cleanWorkspace();
 	}
 
@@ -91,15 +91,71 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		return $tasks;
 	}
 
+	public function testOrchestrationTasks()
+	{
+		// create orchestration
+		$options = array(
+			'crontabRecord' => '1 1 1 1 1',
+		);
+
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// orchestrations tasks
+		$ytTask = new OrchestrationTask();
+		$ytTask->setComponent('ex-youtube')
+			->setAction('configs')
+			->setActionParameters(array('name' => 'Test'));
+
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/');
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($ytTask, $sapiTask));
+
+		$count = 2;
+		$this->assertCount($count, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", $count));
+
+		// modify tasks
+		$url = 'https://connection.keboola.com/v2/storage/tickets/';
+		$ytTask->setActive(false)
+			->setContinueOnFailure(true)
+			->setTimeoutMinutes(30)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($ytTask, $sapiTask));
+
+		$this->assertCount($count, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", $count));
+
+		$task = $tasks[0];
+
+		$this->assertEquals(false, $task['active'], "Result of API command 'updateOrchestration' should return disabled orchestration task");
+		$this->assertEquals(true, $task['continueOnFailure'], "Result of API command 'updateOrchestration' should return task with continue on error");
+		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
+
+		// erase all tasks
+		$count = 0;
+		$tasks = $this->client->updateTasks($orchestration['id'], array());
+
+		$this->assertCount($count, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", $count));
+
+		// delete orchestration
+		$result = $this->client->deleteOrchestration($orchestration['id']);
+		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
+	}
+
 	public function testOrchestrations()
 	{
 		// create orchestration
 		$options = array(
 			'crontabRecord' => '1 1 1 1 1',
-			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
-		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
@@ -254,10 +310,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// create orchestration
 		$options = array(
 			'crontabRecord' => '1 1 1 1 1',
-			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
-		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
@@ -394,10 +449,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// create orchestration
 		$options = array(
 			'crontabRecord' => '1 1 1 1 1',
-			'name' => sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()),
 		);
 
-		$orchestration = $this->client->createOrchestration('Testing Orchestration', $options);
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
