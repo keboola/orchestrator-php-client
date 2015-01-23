@@ -599,4 +599,167 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
 		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
+
+	public function testOrchestrationBackoff()
+	{
+		// create orchestration
+		$options = array(
+			'crontabRecord' => '1 1 1 1 1',
+		);
+
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// 503 task
+		$url = 'https://syrup.keboola.com/timeout/maintenance';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+		$task = $tasks[0];
+
+		$this->assertEquals(true, $task['active'], "Result of API command 'updateOrchestration' should return enabled orchestration task");
+		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
+
+		// enqueue job
+		$job = $this->client->createJob($orchestration['id']);
+		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
+		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
+		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
+
+		// wait for processing job
+		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+		}
+
+		$this->assertEquals('success', $job['status'], "Maintenance test should end with success status");
+
+		// delete orchestration
+		$result = $this->client->deleteOrchestration($orchestration['id']);
+		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
+
+	}
+
+	public function testOrchestrationAsyncBackoff()
+	{
+		// create orchestration
+		$options = array(
+			'crontabRecord' => '1 1 1 1 1',
+		);
+
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// 503 task
+		$url = 'https://syrup.keboola.com/timeout/asynchronous';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setActionParameters(array('config' => 'maintenance'))
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+		$task = $tasks[0];
+
+		$this->assertEquals(true, $task['active'], "Result of API command 'updateOrchestration' should return enabled orchestration task");
+		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
+
+		// enqueue job
+		$job = $this->client->createJob($orchestration['id']);
+		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
+		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
+		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
+
+		// wait for processing job
+		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+		}
+
+		$this->assertEquals('success', $job['status'], "Asynchronous test should end with success status");
+
+		// delete orchestration
+		$result = $this->client->deleteOrchestration($orchestration['id']);
+		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
+
+	}
+
+	public function testOrchestrationAsync()
+	{
+		// create orchestration
+		$options = array(
+			'crontabRecord' => '1 1 1 1 1',
+		);
+
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// 503 task
+		$url = 'https://syrup.keboola.com/timeout/asynchronous';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+		$task = $tasks[0];
+
+		$this->assertEquals(true, $task['active'], "Result of API command 'updateOrchestration' should return enabled orchestration task");
+		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
+
+		// enqueue job
+		$job = $this->client->createJob($orchestration['id']);
+		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
+		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
+		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
+
+		// wait for processing job
+		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+		}
+
+		$this->assertEquals('success', $job['status'], "Asynchronous test should end with success status");
+
+		// delete orchestration
+		$result = $this->client->deleteOrchestration($orchestration['id']);
+		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+		$this->sapiClient->dropTable($orchestration['configurationId']);
+
+	}
 }
