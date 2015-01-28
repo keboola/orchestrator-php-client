@@ -190,14 +190,16 @@ class Client extends GuzzleClient
 	 * Manualy execute orchestration
 	 *
 	 * @param int $orchestrationId
+	 * @param array $notificationsEmails
 	 * @return array
 	 */
-	public function createJob($orchestrationId)
+	public function createJob($orchestrationId, $notificationsEmails = array())
 	{
 		$result = $this->getCommand(
 			'CreateJob',
 			array(
-				'orchestrationId' => $orchestrationId
+				'orchestrationId' => $orchestrationId,
+				'notificationsEmails' => $notificationsEmails,
 			)
 		)->execute();
 		return $result;

@@ -125,6 +125,11 @@
 					"location": "uri",
 					"type": "integer",
 					"required": true
+				},
+				"notificationsEmails": {
+					"location": "json",
+					"type": "array",
+					"required": false
 				}
 			}
 		},
