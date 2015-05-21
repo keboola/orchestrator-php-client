@@ -34,6 +34,26 @@ To start using composer in your project follow these steps:
 
 Read more in [Composer documentation](http://getcomposer.org/doc/01-basic-usage.md)
 
+## Usage
+Execute all orchestrations in KBC project example:
+
+```php
+use Keboola\Orchestrator\Client;
+
+		$client = Client::factory(array(
+			'token' => 'YOUR_TOKEN',
+		));
+
+		// retrieve all orchestrations in KBC project
+		$orchestrations = $client->getOrchestrations();
+
+		foreach ($orchestrations AS $orchestration) {
+			// manually execute orchestration
+			$client->createJob($orchestration['id']);
+		}
+```
+
+
 
 
 ## Tests

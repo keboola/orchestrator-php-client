@@ -30,7 +30,6 @@ class Client extends GuzzleClient
 
 		$config = Collection::fromConfig($config, $default, $required);
 		$config['curl.options'] = array(
-			CURLOPT_SSLVERSION => 3,
 			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_0,
 		);
 		$config['request.options'] = array(
@@ -191,14 +190,16 @@ class Client extends GuzzleClient
 	 * Manualy execute orchestration
 	 *
 	 * @param int $orchestrationId
+	 * @param array $notificationsEmails
 	 * @return array
 	 */
-	public function createJob($orchestrationId)
+	public function createJob($orchestrationId, $notificationsEmails = array())
 	{
 		$result = $this->getCommand(
 			'CreateJob',
 			array(
-				'orchestrationId' => $orchestrationId
+				'orchestrationId' => $orchestrationId,
+				'notificationsEmails' => $notificationsEmails,
 			)
 		)->execute();
 		return $result;
@@ -224,5 +225,32 @@ class Client extends GuzzleClient
 			return false;
 
 		return true;
+	}
+
+	/**
+	 * Update orchestration tasks
+	 *
+	 * @param int $orchestrationId
+	 * @param OrchestrationTask[] $tasks
+	 * @return mixed
+	 */
+	public function updateTasks($orchestrationId, $tasks = array())
+	{
+		foreach ($tasks AS $task) {
+			if (!$task instanceof OrchestrationTask)
+				throw new \InvalidArgumentException(sprintf('Task must be instance of %s', '\Keboola\Orchestrator\OrchestrationTask'));
+		}
+
+		$tasks = array_map(function($item) { return $item->toArray(); }, $tasks);
+
+		$params = array('tasks' => json_encode($tasks));
+		$params['orchestrationId'] = $orchestrationId;
+
+		$command = $this->getCommand(
+			'UpdateOrchestrationTasks',
+			$params
+		);
+
+		return $command->execute();
 	}
 }
