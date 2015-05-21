@@ -189,6 +189,15 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$options = array(
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
+			'tasks' => array(
+				0 => array(
+					'componentUrl' => 'https://syrup.keboola.com/timeout/timer',
+					'active' => true,
+					'actionParameters' => array(
+						'sleep' => 60,
+					)
+				)
+			),
 		);
 
 		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
