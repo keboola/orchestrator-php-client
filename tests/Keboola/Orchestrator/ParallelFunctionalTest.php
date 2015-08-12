@@ -95,7 +95,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 					'active' => true,
 					'phase' => 10,
 					'actionParameters' => array(
-						'delay' => 180,
+						'delay' => 60,
 					)
 				),
 				1 => array(
@@ -179,6 +179,21 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 			}
 		}
 
-		//@TODO validate parallel execution time
+		// parallel job processing
+		$phase = $results['phases'][0];
+		$task1Start = new \DateTime($phase[0]['startTime']);
+		$task1End = new \DateTime($phase[0]['endTime']);
+
+		$task2Start = new \DateTime($phase[1]['startTime']);
+		$task2End = new \DateTime($phase[1]['endTime']);
+
+		$validTime = false;
+		if ($task1Start->getTimestamp() < $task2Start->getTimestamp()) {
+			if ($task1End->getTimestamp() > $task2End->getTimestamp()) {
+				$validTime = true;
+			}
+		}
+
+		$this->assertTrue($validTime, 'First phase should have parallel processed tasks');
 	}
 }
