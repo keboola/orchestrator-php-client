@@ -17,6 +17,8 @@ class OrchestrationTask
 
 	private $timeoutMinutes;
 
+	private $phase;
+
 	public function __construct()
 	{
 
@@ -184,6 +186,33 @@ class OrchestrationTask
 	}
 
 	/**
+	 * Set task phase
+	 *
+	 * @param int $value
+	 * @return $this
+	 */
+	public function setPhase($value)
+	{
+		$value = (int) $value;
+		if ($value)
+			$this->phase = $value;
+		else
+			$this->phase = null;
+
+		return $this;
+	}
+
+	/**
+	 * Get task phase
+	 *
+	 * @return null|int
+	 */
+	public function getPhase()
+	{
+		return $this->phase;
+	}
+
+	/**
 	 * @return array
 	 */
 	public function toArray()
@@ -196,6 +225,7 @@ class OrchestrationTask
 			'continueOnFailure' => $this->getContinueOnFailure(),
 			'active' => $this->getActive(),
 			'timeoutMinutes' => $this->getTimeoutMinutes(),
+			'phase' => $this->getPhase(),
 		);
 	}
 }
