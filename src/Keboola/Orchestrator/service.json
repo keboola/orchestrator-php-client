@@ -45,7 +45,67 @@
 					"location": "json",
 					"type": "string",
 					"required": false
-				}
+				},
+                "tasks": {
+                    "location": "json",
+                    "type": "array",
+                    "default": null,
+                    "items": {
+                        "component": {
+                            "type": "string",
+                            "required": false
+                        },
+                        "componentUrl": {
+                            "type": "string",
+                            "required": false
+                        },
+                        "action": {
+                            "type": "string",
+                            "required": false
+                        },
+                        "actionParameters": {
+                            "type": "object",
+                            "required": false
+                        },
+                        "continueOnFailure": {
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "active": {
+                            "type": "boolean",
+                            "required": false
+                        },
+                        "timeoutMinutes": {
+                            "type": "integer",
+                            "required": false
+                        },
+                        "phase": {
+                            "type": "integer",
+                            "required": false
+                        }
+                    },
+                    "required": false
+                },
+                "notifications": {
+                    "location": "json",
+                    "type": "array",
+                    "default": null,
+                    "items": {
+                        "email": {
+                            "type": "string",
+                            "required": false
+                        },
+                        "channel": {
+                            "type": "string",
+                            "required": false
+                        },
+                        "parameters": {
+                            "type": "object",
+                            "required": false
+                        }
+                    },
+                    "required": false
+                }
 			}
 		},
 		"UpdateOrchestration": {

@@ -314,6 +314,86 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
+	public function testOrchestrationsCreateWithTasksAndNotifications()
+	{
+		// create orchestration
+		$options = array(
+			'crontabRecord' => '1 1 1 1 1',
+			'tasks' => array(
+				0 => array(
+					'componentUrl' => 'https://syrup.keboola.com/timeout/timer',
+					'active' => true,
+					'actionParameters' => array(
+						'sleep' => 60,
+					)
+				)
+			),
+			'notifications' => array(
+				0 => array(
+					'channel' => 'error',
+					'email' => 'devel@keboola.com',
+				)
+
+			)
+		);
+
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('tasks', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		$this->assertCount(1, $orchestration['tasks']);
+		$task = reset($orchestration['tasks']);
+
+		$this->assertArrayHasKey('id', $task);
+		$this->assertArrayHasKey('componentUrl', $task);
+		$this->assertArrayHasKey('active', $task);
+		$this->assertArrayHasKey('actionParameters', $task);
+
+		$this->assertNotEmpty('id', $task['id']);
+		$this->assertEquals('https://syrup.keboola.com/timeout/timer', $task['componentUrl']);
+		$this->assertEquals(array('sleep' => 60,), $task['actionParameters']);
+		$this->assertTrue($task['active']);
+
+		$this->assertCount(1, $orchestration['notifications']);
+		$notification = reset($orchestration['notifications']);
+
+		$this->assertArrayHasKey('email', $notification);
+		$this->assertArrayHasKey('channel', $notification);
+		$this->assertEquals('devel@keboola.com', $notification['email']);
+		$this->assertEquals('error', $notification['channel']);
+
+		// orchestration detail
+		$orchestration = $this->client->getOrchestration($orchestration['id']);
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'getOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('tasks', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
+
+		$this->assertCount(1, $orchestration['tasks']);
+		$task = reset($orchestration['tasks']);
+
+		$this->assertArrayHasKey('id', $task);
+		$this->assertArrayHasKey('componentUrl', $task);
+		$this->assertArrayHasKey('active', $task);
+		$this->assertArrayHasKey('actionParameters', $task);
+
+		$this->assertNotEmpty('id', $task['id']);
+		$this->assertEquals('https://syrup.keboola.com/timeout/timer', $task['componentUrl']);
+		$this->assertEquals(array('sleep' => 60,), $task['actionParameters']);
+		$this->assertTrue($task['active']);
+
+		$this->assertCount(1, $orchestration['notifications']);
+		$notification = reset($orchestration['notifications']);
+
+		$this->assertArrayHasKey('email', $notification);
+		$this->assertArrayHasKey('channel', $notification);
+		$this->assertEquals('devel@keboola.com', $notification['email']);
+		$this->assertEquals('error', $notification['channel']);
+	}
+
 	public function testOrchestrationsError()
 	{
 		// create orchestration
