@@ -67,7 +67,6 @@ class Client extends GuzzleClient
 	 * Orchestrator registration
 	 *
 	 * Available options are
-	 * 	- configurationId - existing KBC table with tasks configuration
 	 *	- crontabRecord
 	 *  - tokenId
 	 *
