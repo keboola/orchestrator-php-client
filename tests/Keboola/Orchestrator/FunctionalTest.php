@@ -47,7 +47,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 				continue;
 
 			$this->client->deleteOrchestration($orchestration['id']);
-			$this->sapiClient->dropTable($orchestration['configurationId']);
 		}
 	}
 
@@ -145,7 +144,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrations()
@@ -311,7 +309,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrationsCreateWithTasksAndNotifications()
@@ -530,7 +527,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrationsWarn()
@@ -686,7 +682,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 	}
 
 	public function testOrchestrationBackoff()
@@ -739,7 +734,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 
 	}
 
@@ -794,7 +788,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
 
 	}
 
@@ -848,7 +841,5 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
-		$this->sapiClient->dropTable($orchestration['configurationId']);
-
 	}
 }

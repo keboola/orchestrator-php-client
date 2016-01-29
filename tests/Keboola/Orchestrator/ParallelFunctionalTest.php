@@ -45,7 +45,6 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 				continue;
 
 			$this->client->deleteOrchestration($orchestration['id']);
-			$this->sapiClient->dropTable($orchestration['configurationId']);
 		}
 	}
 
