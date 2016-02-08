@@ -75,7 +75,7 @@
                             "required": false
                         },
                         "phase": {
-                            "type": "integer",
+                            "type": "string",
                             "required": false
                         }
                     },
@@ -167,7 +167,7 @@
                             "required": false
                         },
                         "phase": {
-                            "type": "integer",
+                            "type": "string",
                             "required": false
                         }
                     },
