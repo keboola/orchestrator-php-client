@@ -191,8 +191,28 @@ class Client extends GuzzleClient
 	 * @param int $orchestrationId
 	 * @param array $notificationsEmails
 	 * @return array
+	 * @deprecated This method will be removed in next release
 	 */
 	public function createJob($orchestrationId, $notificationsEmails = array())
+	{
+		$result = $this->getCommand(
+			'CreateJob',
+			array(
+				'orchestrationId' => $orchestrationId,
+				'notificationsEmails' => $notificationsEmails,
+			)
+		)->execute();
+		return $result;
+	}
+
+	/**
+	 * Manualy execute orchestration
+	 *
+	 * @param $orchestrationId
+	 * @param array $notificationsEmails
+	 * @return mixed
+	 */
+	public function runOrchestration($orchestrationId, $notificationsEmails = array())
 	{
 		$result = $this->getCommand(
 			'CreateJob',

@@ -196,7 +196,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -210,7 +210,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		}
 
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
@@ -238,7 +238,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$processingJob = $job;
 
 		// job cancel
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
@@ -252,7 +252,14 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-		$this->assertEquals('cancelled', $job['status'], "Result of API command 'getJob' should return cancelled job");
+
+		$allowedStatus = array(
+			'cancelled',
+			'terminated',
+			'terminating'
+		);
+
+		$this->assertTrue(in_array($job['status'], $allowedStatus) , "Result of API command 'getJob' should return cancelled or terminated job job");
 
 
 		// job stats
@@ -294,6 +301,16 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			}
 
 			if ($job['status'] === 'cancelled') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminated') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminating') {
 				$cancelledCount++;
 				continue;
 			}
@@ -432,7 +449,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -446,7 +463,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		}
 
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
@@ -512,6 +529,16 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			}
 
 			if ($job['status'] === 'cancelled') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminated') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminating') {
 				$cancelledCount++;
 				continue;
 			}
@@ -570,7 +597,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -584,7 +611,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		}
 
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
@@ -612,7 +639,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$processingJob = $job;
 
 		// job cancel
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
@@ -626,7 +653,14 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-		$this->assertEquals('cancelled', $job['status'], "Result of API command 'getJob' should return cancelled job");
+
+		$allowedStatus = array(
+			'cancelled',
+			'terminated',
+			'terminating'
+		);
+
+		$this->assertTrue(in_array($job['status'], $allowedStatus) , "Result of API command 'getJob' should return cancelled or terminated job job");
 
 		// job stats
 
@@ -667,6 +701,16 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			}
 
 			if ($job['status'] === 'cancelled') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminated') {
+				$cancelledCount++;
+				continue;
+			}
+
+			if ($job['status'] === 'terminating') {
 				$cancelledCount++;
 				continue;
 			}
@@ -715,7 +759,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -769,7 +813,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -822,7 +866,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($url, $task['componentUrl'], "Result of API command 'updateOrchestration' should return task with SAPI ticket");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");

@@ -127,7 +127,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -274,7 +274,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -571,7 +571,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertNull($tasks[4]['phase']);
 
 		// enqueue job
-		$job = $this->client->createJob($orchestration['id']);
+		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
