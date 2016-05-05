@@ -212,16 +212,19 @@ class Client extends GuzzleClient
 	 * @param array $notificationsEmails
 	 * @return mixed
 	 */
-	public function runOrchestration($orchestrationId, $notificationsEmails = array())
+	public function runOrchestration($orchestrationId, $notificationsEmails = array(), $tasks = array())
 	{
-		$result = $this->getCommand(
-			'CreateJob',
-			array(
-				'orchestrationId' => $orchestrationId,
-				'notificationsEmails' => $notificationsEmails,
-			)
-		)->execute();
-		return $result;
+		$params = array('config' => $orchestrationId);
+
+		if ($notificationsEmails) {
+			$params['notificationsEmails'] = $notificationsEmails;
+		}
+
+		if ($tasks) {
+			$params['tasks'] = $tasks;
+		}
+
+		return $this->getCommand('RunOrchestration',$params)->execute();
 	}
 
 	/**

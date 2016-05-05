@@ -2,6 +2,7 @@
 namespace Keboola\Orchestrator\Tests;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
+use GuzzleHttp\Exception\ClientException;
 use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
 use Keboola\StorageApi\Client AS StorageApi;
@@ -885,5 +886,164 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// delete orchestration
 		$result = $this->client->deleteOrchestration($orchestration['id']);
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
+	}
+
+	public function testOrchestrationRunWithEmails()
+	{
+		// create orchestration
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// update tasks
+		$url = 'https://syrup.keboola.com/timeout/asynchronous';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+
+		$notifications = array(FUNCTIONAL_ERROR_NOTIFICATION_EMAIL);
+
+		// new run
+		$job = $this->client->runOrchestration($orchestration['id'], $notifications);
+
+		$this->assertArrayHasKey('id', $job);
+		$this->assertArrayHasKey('orchestrationId', $job);
+		$this->assertArrayHasKey('notificationsEmails', $job);
+		$this->assertArrayHasKey('status', $job);
+		$this->assertArrayHasKey('isFinished', $job);
+		$this->assertEquals('waiting', $job['status']);
+		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
+		$this->assertEquals($notifications, $job['notificationsEmails']);
+
+		// wait for processing job
+		while (!$job['isFinished']) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+
+
+		// BC old run
+		$job = $this->client->createJob($orchestration['id'], $notifications);
+
+		$this->assertArrayHasKey('id', $job);
+		$this->assertArrayHasKey('orchestrationId', $job);
+		$this->assertArrayHasKey('notificationsEmails', $job);
+		$this->assertArrayHasKey('status', $job);
+		$this->assertArrayHasKey('isFinished', $job);
+		$this->assertEquals('waiting', $job['status']);
+		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
+		$this->assertEquals($notifications, $job['notificationsEmails']);
+
+		// wait for processing job
+		while (!$job['isFinished']) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+	}
+
+	public function testOrchestrationRunWithTasks()
+	{
+		// create orchestration
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// update tasks
+		$url = 'https://syrup.keboola.com/timeout/asynchronous';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+		// new
+		$job = $this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->setActive(false)->toArray()));
+
+		$this->assertArrayHasKey('id', $job);
+		$this->assertArrayHasKey('orchestrationId', $job);
+		$this->assertArrayHasKey('status', $job);
+		$this->assertArrayHasKey('isFinished', $job);
+		$this->assertEquals('waiting', $job['status']);
+		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
+
+		// wait for processing job
+		while (!$job['isFinished']) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+
+		$this->assertArrayHasKey('tasks', $job);
+		$this->assertCount(1, $job['tasks']);
+
+		$task = reset($job['tasks']);
+
+		$this->assertArrayHasKey('active', $task);
+		$this->assertFalse($task['active']);
+
+		$this->assertArrayHasKey('results', $job);
+		$this->assertArrayHasKey('tasks', $job['results']);
+		$this->assertArrayHasKey('phases', $job['results']);
+		$this->assertCount(1, $job['results']['tasks']);
+
+		$task = reset($job['results']['tasks']);
+
+		$this->assertArrayHasKey('active', $task);
+		$this->assertFalse($task['active']);
+		$this->assertArrayHasKey('status', $task);
+		$this->assertEmpty($task['status']);
+	}
+
+	public function testOrchestrationRunWithTasksError()
+	{
+		// create orchestration
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// update tasks
+		$url = 'https://syrup.keboola.com/timeout/asynchronous';
+		$sapiTask = new OrchestrationTask();
+		$sapiTask->setActive(true)
+			->setContinueOnFailure(false)
+			->setComponent(null)
+			->setComponentUrl($url);
+
+		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
+
+		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
+
+		// new
+		$sapiTask->setComponentUrl('https://syrup.keboola.com/timeout/timer');
+
+		try {
+			$this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->toArray()));
+			$this->fail('Orchestration run with different tasks should produce errors');
+		} catch (ClientErrorResponseException $e) {
+			$response = $e->getResponse()->json();
+
+			$this->assertArrayHasKey('message', $response);
+			$this->assertArrayHasKey('code', $response);
+			$this->assertArrayHasKey('status', $response);
+			$this->assertRegExp('/different from orchestration task/ui', $response['message']);
+			$this->assertEquals('warning', $response['status']);
+			$this->assertEquals('JOB_VALIDATION', $response['code']);
+		}
 	}
 }

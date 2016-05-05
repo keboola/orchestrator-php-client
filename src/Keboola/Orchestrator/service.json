@@ -231,6 +231,28 @@
 				}
 			}
 		},
+		"RunOrchestration": {
+			"httpMethod": "POST",
+			"uri": "run",
+			"summary": "Manualy execute orchestration",
+			"parameters": {
+				"config": {
+					"location": "json",
+					"type": "integer",
+					"required": true
+				},
+				"notificationsEmails": {
+					"location": "json",
+					"type": "array",
+					"required": false
+				},
+				"tasks": {
+					"location": "json",
+					"type": "array",
+					"required": false
+				}
+			}
+		},
 		"CreateJob": {
 			"httpMethod": "POST",
 			"uri": "orchestrations/{orchestrationId}/jobs",
