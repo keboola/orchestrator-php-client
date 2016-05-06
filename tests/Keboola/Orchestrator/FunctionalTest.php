@@ -600,28 +600,18 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// enqueue job
 		$job = $this->client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
-
-		$job = $this->client->runOrchestration($orchestration['id']);
-
-		// list of orchestration jobs
-		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
-		$this->assertCount(2, $jobs, "Result of API command 'getOrchestrationJobs' should return 2 jobs");
-
-		$this->assertArrayHasKey('id', $jobs[0], "Result of API command 'getOrchestrationJobs' should return orchestration jobs");
-		$this->assertArrayHasKey('orchestrationId', $jobs[0], "Result of API command 'getOrchestrationJobs' should return orchestration jobs");
-		$this->assertArrayHasKey('status', $jobs[0], "Result of API command 'getOrchestrationJobs' should return orchestration jobs");
-		$this->assertEquals($orchestration['id'], $jobs[0]['orchestrationId'], "Result of API command 'getOrchestrationJobs' should return jobs for given orchestration");
 
 		// job detail
 		$job = $this->client->getJob($job['id']);
@@ -629,48 +619,6 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-
-		// wait for job processing
-		while (in_array($job['status'], array('waiting'))) {
-			sleep(3);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
-		}
-
-		$processingJob = $job;
-
-		// job cancel
-		$job = $this->client->runOrchestration($orchestration['id']);
-		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
-		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
-		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
-		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-
-		$result = $this->client->cancelJob($job['id']);
-		$this->assertTrue($result, "Result of API command 'cancelJob' should return TRUE");
-
-		$job = $this->client->getJob($job['id']);
-		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
-		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
-		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
-		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
-
-		$allowedStatus = array(
-			'cancelled',
-			'terminated',
-			'terminating'
-		);
-
-		$this->assertTrue(in_array($job['status'], $allowedStatus) , "Result of API command 'getJob' should return cancelled or terminated job job");
-
-		// job stats
-
-		// wait for processing job
-		while (!in_array($processingJob['status'], array('ok', 'success', 'error', 'warn'))) {
-			sleep(5);
-			$processingJob = $this->client->getJob($processingJob['id']);
-			$this->assertArrayHasKey('status', $processingJob, "Result of API command 'getJob' should return job info");
-		}
 
 		$errorsCount = 0;
 		$cancelledCount = 0;
