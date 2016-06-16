@@ -181,7 +181,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 					'componentUrl' => 'https://syrup.keboola.com/timeout/timer',
 					'active' => true,
 					'actionParameters' => array(
-						'sleep' => 60,
+						'sleep' => 120,
 					)
 				)
 			),
@@ -910,7 +910,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// update tasks
 		$url = 'https://syrup.keboola.com/timeout/asynchronous';
 		$sapiTask = new OrchestrationTask();
-		$sapiTask->setActive(true)
+		$sapiTask->setActive(false)
 			->setContinueOnFailure(false)
 			->setComponent(null)
 			->setComponentUrl($url);
@@ -920,7 +920,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
 
 		// new
-		$job = $this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->setActive(false)->toArray()));
+		$job = $this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->setActive(true)->toArray()));
 
 		$this->assertArrayHasKey('id', $job);
 		$this->assertArrayHasKey('orchestrationId', $job);
@@ -942,7 +942,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$task = reset($job['tasks']);
 
 		$this->assertArrayHasKey('active', $task);
-		$this->assertFalse($task['active']);
+		$this->assertTrue($task['active']);
 
 		$this->assertArrayHasKey('results', $job);
 		$this->assertArrayHasKey('tasks', $job['results']);
@@ -952,9 +952,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$task = reset($job['results']['tasks']);
 
 		$this->assertArrayHasKey('active', $task);
-		$this->assertFalse($task['active']);
+		$this->assertTrue($task['active']);
 		$this->assertArrayHasKey('status', $task);
-		$this->assertEmpty($task['status']);
+		$this->assertEquals('success', $task['status']);
 	}
 
 	public function testOrchestrationRunWithTasksError()
