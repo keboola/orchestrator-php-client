@@ -70,7 +70,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/'));
 
 		array_push($tasks, (new OrchestrationTask())
-			->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/'));
+			->setComponentUrl('https://syrup.keboola.com/timeout/timer')
+			->setActionParameters(array('sleep' => 3))
+		);
 
 
 		return $tasks;
@@ -85,7 +87,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			->setContinueOnFailure(true));
 
 		array_push($tasks, (new OrchestrationTask())
-			->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/'));
+			->setComponentUrl('https://syrup.keboola.com/timeout/timer')
+			->setActionParameters(array('sleep' => 3))
+		);
 
 
 		return $tasks;
@@ -111,7 +115,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			->setActionParameters(array('name' => 'Test'));
 
 		$sapiTask = new OrchestrationTask();
-		$sapiTask->setComponentUrl('https://connection.keboola.com/v2/storage/tickets/');
+		$sapiTask->setComponentUrl('https://syrup.keboola.com/timeout/timer')->setActionParameters(array('sleep' => 3));
 
 		$tasks = $this->client->updateTasks($orchestration['id'], array($ytTask, $sapiTask));
 
@@ -119,8 +123,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertCount($count, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", $count));
 
 		// modify tasks
-		$url = 'https://connection.keboola.com/v2/storage/tickets/';
+		$url = 'https://syrup.keboola.com/timeout/timer';
 		$ytTask->setActive(false)
+			->setActionParameters(array('sleep' => 3))
 			->setContinueOnFailure(true)
 			->setTimeoutMinutes(30)
 			->setComponent(null)
