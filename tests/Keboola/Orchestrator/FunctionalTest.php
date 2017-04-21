@@ -206,14 +206,15 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
 		$job = $this->client->runOrchestration($orchestration['id']);
@@ -257,6 +258,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
 
 		$allowedStatus = array(
@@ -271,10 +273,10 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// job stats
 
 		// wait for processing job
-		while (!in_array($processingJob['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
-			$processingJob = $this->client->getJob($processingJob['id']);
-			$this->assertArrayHasKey('status', $processingJob, "Result of API command 'getJob' should return job info");
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
 		$errorsCount = 0;
@@ -459,16 +461,18 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
+		$this->assertArrayHasKey('status', $job);
 		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
@@ -492,6 +496,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			sleep(3);
 			$job = $this->client->getJob($job['id']);
 			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job, "Result of API command 'getJob' should contain isFinished status");
 		}
 
 		$processingJob = $job;
@@ -499,10 +504,10 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		// job stats
 
 		// wait for processing job
-		while (!in_array($processingJob['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
-			$processingJob = $this->client->getJob($processingJob['id']);
-			$this->assertArrayHasKey('status', $processingJob, "Result of API command 'getJob' should return job info");
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
 		$errorsCount = 0;
@@ -662,6 +667,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
@@ -771,16 +777,18 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
+		$this->assertArrayHasKey('status', $job);
 		$this->assertEquals('success', $job['status'], "Maintenance test should end with success status");
 
 		// delete orchestration
@@ -825,16 +833,18 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
+		$this->assertArrayHasKey('status', $job);
 		$this->assertEquals('success', $job['status'], "Asynchronous test should end with success status");
 
 		// delete orchestration
@@ -878,16 +888,18 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
 
+		$this->assertArrayHasKey('status', $job);
 		$this->assertEquals('success', $job['status'], "Asynchronous test should end with success status");
 
 		// delete orchestration

@@ -131,15 +131,18 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
+
+		$this->assertArrayHasKey('status', $job);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
@@ -278,15 +281,18 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
+
+		$this->assertArrayHasKey('status', $job);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
@@ -575,15 +581,18 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
 		// wait for processing job
-		while (!in_array($job['status'], array('ok', 'success', 'error', 'warn'))) {
+		while (!$job['isFinished']) {
 			sleep(5);
 			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
+			$this->assertArrayHasKey('isFinished', $job);
 		}
+
+		$this->assertArrayHasKey('status', $job);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
