@@ -617,7 +617,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertArrayHasKey('isFinished', $task['response']);
 
 			$this->assertTrue($task['response']['isFinished']);
-			$this->assertEquals($task['status'], $task['response']['status']);
+			$this->assertEquals($task['response']['status'], $task['status']);
 		}
 	}
 
