@@ -298,7 +298,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 				continue;
 			}
 
-			if ($job['status'] === 'warn') {
+			if ($job['status'] === 'warning') {
 				$warnCount++;
 				continue;
 			}
@@ -327,7 +327,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		}
 
 		$this->assertLessThan(1, $errorsCount, "Result of API command 'getOrchestrationJobs' should return any job with 'error' status");
-		$this->assertLessThan(1, $warnCount, "Result of API command 'getOrchestrationJobs' should return any job with 'warn' status");
+		$this->assertLessThan(1, $warnCount, "Result of API command 'getOrchestrationJobs' should return any job with 'warning' status");
 		$this->assertGreaterThan(0, $successCount, "Result of API command 'getOrchestrationJobs' should return least one job with 'success' status");
 		$this->assertLessThan(1, $otherCount, "Result of API command 'getOrchestrationJobs' should return only finished jobs");
 
@@ -529,7 +529,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 				continue;
 			}
 
-			if ($job['status'] === 'warn') {
+			if ($job['status'] === 'warning') {
 				$warnCount++;
 				continue;
 			}
@@ -558,7 +558,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		}
 
 		$this->assertLessThan(1, $successCount, "Result of API command 'getOrchestrationJobs' should return any job with 'status' status");
-		$this->assertLessThan(1, $warnCount, "Result of API command 'getOrchestrationJobs' should return any job with 'warn' status");
+		$this->assertLessThan(1, $warnCount, "Result of API command 'getOrchestrationJobs' should return any job with 'warning' status");
 		$this->assertGreaterThan(0, $errorsCount, "Result of API command 'getOrchestrationJobs' should return least one job with 'error' status");
 		$this->assertLessThan(1, $otherCount, "Result of API command 'getOrchestrationJobs' should return only finished jobs");
 
@@ -704,7 +704,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 				continue;
 			}
 
-			if ($job['status'] === 'warn') {
+			if ($job['status'] === 'warning') {
 				$warnCount++;
 				continue;
 			}
@@ -734,7 +734,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertLessThan(1, $successCount, "Result of API command 'getOrchestrationJobs' should return any job with 'status' status");
 		$this->assertLessThan(1, $errorsCount, "Result of API command 'getOrchestrationJobs' should return any job with 'error' status");
-		$this->assertGreaterThan(0, $warnCount, "Result of API command 'getOrchestrationJobs' should return least one job with 'warn' status");
+		$this->assertGreaterThan(0, $warnCount, "Result of API command 'getOrchestrationJobs' should return least one job with 'warning' status");
 		$this->assertLessThan(1, $otherCount, "Result of API command 'getOrchestrationJobs' should return only finished jobs");
 
 		// delete orchestration
