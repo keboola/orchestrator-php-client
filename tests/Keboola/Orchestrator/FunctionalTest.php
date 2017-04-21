@@ -562,6 +562,60 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertTrue($result, "Result of API command 'deleteOrchestration' should return TRUE");
 	}
 
+	public function testOrchestrationsWarnInResult()
+	{
+		// create orchestrations
+		$masterOrchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $masterOrchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $masterOrchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $masterOrchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		$childOrchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $childOrchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
+		$this->assertArrayHasKey('crontabRecord', $childOrchestration, "Result of API command 'createOrchestration' should return orchestration info");
+		$this->assertArrayHasKey('nextScheduledTime', $childOrchestration, "Result of API command 'createOrchestration' should return orchestration info");
+
+		// setup tasks
+		$this->client->updateTasks($childOrchestration['id'], $this->createTestDataWithWarn());
+
+		$task = new OrchestrationTask();
+		$task->setComponentUrl(FUNCTIONAL_ORCHESTRATOR_API_URL . '/run')->setActionParameters(['config' => $childOrchestration['id']]);
+
+		$this->client->updateTasks($masterOrchestration['id'], [$task]);
+
+		$job = $this->client->runOrchestration($masterOrchestration['id']);
+		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
+		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
+
+		// wait for processing job
+		while (!$job['isFinished']) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+
+		$this->assertArrayHasKey('status', $job);
+		$this->assertEquals('error', $job['status']);
+
+		$this->assertArrayHasKey('results', $job);
+		$this->assertArrayHasKey('tasks', $job['results']);
+
+		$this->assertEquals(1, count($job['results']['tasks']));
+
+		foreach ($job['results']['tasks'] as $task) {
+			$this->assertArrayHasKey('status', $task);
+			$this->assertArrayHasKey('response', $task);
+
+			$this->assertArrayHasKey('status', $task['response']);
+			$this->assertArrayHasKey('isFinished', $task['response']);
+
+			$this->assertTrue($task['response']['isFinished']);
+			$this->assertEquals($task['status'], $task['response']['status']);
+		}
+	}
+
 	public function testOrchestrationsWarn()
 	{
 		// create orchestration
