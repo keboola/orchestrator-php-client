@@ -650,4 +650,71 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 
 		$this->assertTrue($validTime, 'First phase should have parallel processed tasks');
 	}
+	
+	public function testOrchestrationConfigOverwrite()
+	{
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		// orchestration update
+		$options = array(
+			'active' => false,
+			'notifications' => [
+				[
+					"channel" => "error",
+					"email" => FUNCTIONAL_ERROR_NOTIFICATION_EMAIL,
+				]
+			],
+			'tasks' => array(
+				0 => array(
+					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
+					'active' => true,
+					'phase' => 10,
+					'actionParameters' => array(
+						'delay' => 60,
+					)
+				),
+			),
+		);
+
+		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$this->assertEquals($options['notifications'][0]['email'], $orchestration['notifications'][0]['email']);
+
+		$job = $this->client->runOrchestration($orchestration['id']);
+		$this->assertArrayHasKey('id', $job);
+		$this->assertArrayHasKey('status', $job);
+		$this->assertArrayHasKey('isFinished', $job);
+		$this->assertArrayHasKey('startTime', $job);
+		$this->assertEquals('waiting', $job['status']);
+		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
+
+		// wait for job start
+		while (!$job['startTime']) {
+			sleep(2);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('startTime', $job);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+
+		// orchestration update
+		$options['notifications'][0]['email'] = 'test' . FUNCTIONAL_ERROR_NOTIFICATION_EMAIL;
+		$options['tasks'][0]['actionParameters'] = ['delay' => 360];
+
+		$changedOrchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		unset($changedOrchestration['lastExecutedJob']);
+
+		// wait for processing job
+		while (!$job['isFinished']) {
+			sleep(5);
+			$job = $this->client->getJob($job['id']);
+			$this->assertArrayHasKey('isFinished', $job);
+		}
+
+		$this->assertArrayHasKey('status', $job);
+
+		// compare orchestration configs
+		$finishedOrchestration = $this->client->getOrchestration($orchestration['id']);
+		unset($finishedOrchestration['lastExecutedJob']);
+
+		$this->assertEquals($changedOrchestration, $finishedOrchestration);
+	}
 }
