@@ -56,7 +56,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$tasks = array(
 			(new OrchestrationTask())
 				->setComponentUrl('https://syrup.keboola.com/timeout/timer')
-				->setActionParameters(array('sleep' => 30))
+				->setActionParameters(array('sleep' => 3))
 		);
 
 		return $tasks;
@@ -220,7 +220,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
+		sleep(2);
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
+
 		$this->assertCount(2, $jobs, "Result of API command 'getOrchestrationJobs' should return 2 jobs");
 
 		$this->assertArrayHasKey('id', $jobs[0], "Result of API command 'getOrchestrationJobs' should return orchestration jobs");
@@ -286,6 +288,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$warnCount = 0;
 		$otherCount = 0;
 
+		sleep(2);
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		foreach ($jobs AS $job) {
 			if ($job['status'] === 'success') {
@@ -476,6 +479,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$job = $this->client->runOrchestration($orchestration['id']);
 
 		// list of orchestration jobs
+		sleep(2);
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		$this->assertCount(2, $jobs, "Result of API command 'getOrchestrationJobs' should return 2 jobs");
 
@@ -517,6 +521,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$warnCount = 0;
 		$otherCount = 0;
 
+		sleep(2);
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		foreach ($jobs AS $job) {
 			if ($job['status'] === 'success') {
@@ -586,7 +591,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->client->updateTasks($childOrchestration['id'], $this->createTestDataWithWarn());
 
 		$task = new OrchestrationTask();
-		$task->setComponentUrl(FUNCTIONAL_ORCHESTRATOR_API_URL . '/run')->setActionParameters(['config' => $childOrchestration['id']]);
+		$task->setComponentUrl(FUNCTIONAL_ORCHESTRATOR_API_URL . 'run')->setActionParameters(['config' => $childOrchestration['id']]);
 
 		$this->client->updateTasks($masterOrchestration['id'], [$task]);
 
@@ -692,6 +697,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$warnCount = 0;
 		$otherCount = 0;
 
+		sleep(2);
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		foreach ($jobs AS $job) {
 			if ($job['status'] === 'success') {
