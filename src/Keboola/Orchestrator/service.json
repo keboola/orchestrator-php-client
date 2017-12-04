@@ -1,18 +1,20 @@
 {
 	"name": "Keboola Orchestrator",
-	"apiVersion": "2014-03-28",
-	"baseUrl": "https://syrup.keboola.com/orchestrator",
+	"apiVersion": "2017-12-04",
+	"baseUri": "https://syrup.keboola.com/orchestrator/",
 	"description": "Keboola Orchestrator API PHP Client",
 	"operations": {
 		"GetOrchestrations": {
 			"httpMethod": "GET",
 			"uri": "orchestrations",
-			"summary": "Get registered orchestrations"
+			"summary": "Get registered orchestrations",
+			"responseModel": "getResponse"
 		},
 		"GetOrchestration": {
 			"httpMethod": "GET",
 			"uri": "orchestrations/{orchestrationId}",
 			"summary": "Get orchestration details",
+			"responseModel": "getResponse",
 			"parameters": {
 				"orchestrationId": {
 					"location": "uri",
@@ -25,6 +27,7 @@
 			"httpMethod": "POST",
 			"uri": "orchestrations",
 			"summary": "Orchestrator registration",
+			"responseModel": "getResponse",
 			"parameters": {
 				"name": {
 					"location": "json",
@@ -107,6 +110,7 @@
 			"httpMethod": "PUT",
 			"uri": "orchestrations/{orchestrationId}",
 			"summary": "Update orchestration",
+			"responseModel": "getResponse",
 			"parameters": {
 				"orchestrationId": {
 					"location": "uri",
@@ -199,6 +203,7 @@
 			"httpMethod": "DELETE",
 			"uri": "orchestrations/{orchestrationId}",
 			"summary": "Delete orchestration",
+			"responseModel": "getStatusCode",
 			"parameters": {
 				"orchestrationId": {
 					"location": "uri",
@@ -211,6 +216,7 @@
 			"httpMethod": "GET",
 			"uri": "orchestrations/{orchestrationId}/jobs",
 			"summary": "List orchestration jobs",
+			"responseModel": "getResponse",
 			"parameters": {
 				"orchestrationId": {
 					"location": "uri",
@@ -223,6 +229,7 @@
 			"httpMethod": "GET",
 			"uri": "jobs/{jobId}",
 			"summary": "Get job details",
+			"responseModel": "getResponse",
 			"parameters": {
 				"jobId": {
 					"location": "uri",
@@ -235,6 +242,7 @@
 			"httpMethod": "POST",
 			"uri": "run",
 			"summary": "Manualy execute orchestration",
+			"responseModel": "getResponse",
 			"parameters": {
 				"config": {
 					"location": "json",
@@ -257,6 +265,7 @@
 			"httpMethod": "POST",
 			"uri": "orchestrations/{orchestrationId}/jobs",
 			"summary": "Manualy execute orchestration",
+			"responseModel": "getResponse",
 			"parameters": {
 				"orchestrationId": {
 					"location": "uri",
@@ -274,6 +283,7 @@
 			"httpMethod": "DELETE",
 			"uri": "jobs/{jobId}",
 			"summary": "Cancel waiting job",
+			"responseModel": "getStatusCode",
 			"parameters": {
 				"jobId": {
 					"location": "uri",
@@ -286,6 +296,7 @@
             "httpMethod": "PUT",
             "uri": "orchestrations/{orchestrationId}/tasks",
             "summary": "Update orchestration tasks",
+			"responseModel": "getResponse",
             "parameters": {
                 "orchestrationId": {
                     "location": "uri",
@@ -293,11 +304,28 @@
                     "required": true
                 },
                 "tasks": {
-                    "location": "body",
+                    "location": "bodyJsonString",
                     "type": "string",
                     "required": false
                 }
             }
         }
+	},
+	"models" : {
+		"getResponse" : {
+			"type" : "object",
+			"additionalProperties" : {
+				"location" : "json"
+			}
+		},
+		"getStatusCode" : {
+			"type" : "object",
+			"properties" : {
+				"status" : {
+					"location": "statusCode",
+					"type": "integer"
+				}
+			}
+		}
 	}
 }

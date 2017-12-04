@@ -7,47 +7,56 @@
  */
 namespace Keboola\Orchestrator;
 
-use Guzzle\Common\Collection;
-use Guzzle\Plugin\Backoff\BackoffPlugin;
-use Guzzle\Service\Client AS GuzzleClient;
-use Guzzle\Service\Description\ServiceDescription;
+use GuzzleHttp\Command\Guzzle\Description;
+use GuzzleHttp\Command\Guzzle\GuzzleClient;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Command\Guzzle\Serializer;
+use Keboola\Orchestrator\GuzzleServices\RequestLocation\RawBodyLocation;
 
 class Client extends GuzzleClient
 {
-	const DEFAULT_API_URL = 'https://syrup.keboola.com/orchestrator';
+	const USER_AGENT = 'Keboola Orchestrator PHP Client';
 
 	/**
+	 * Configuraiton params
+	 * - token - Storage API token
+	 * - url (optional) - API URL endpoint
+	 *
 	 * @param array $config
 	 * @return Client
 	 */
 	public static function factory($config = array())
 	{
-		$default = array(
-			'url' => self::DEFAULT_API_URL,
+		$serviceJson = json_decode(
+			file_get_contents(__DIR__ . '/service.json'),
+			true
 		);
 
-		$required = array('token');
+		if (!isset($config['token'])) {
+			throw new \InvalidArgumentException('Parameter "token" missing in client configuration');
+		}
 
-		$config = Collection::fromConfig($config, $default, $required);
-		$config['curl.options'] = array(
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_0,
-		);
-		$config['request.options'] = array(
-			'headers' => array(
-				'X-StorageApi-Token' => $config->get('token')
-			)
-		);
-		$client = new self($config->get('url'), $config);
+		if (isset($config['url'])) {
+			$serviceJson['baseUri'] = $config['url'];
+		}
 
-		// Attach a service description to the client
-		$description = ServiceDescription::factory(__DIR__ . '/service.json');
-		$client->setDescription($description);
+		$serviceDescription = new Description($serviceJson);
 
-		$client->setBaseUrl($config->get('url'));
+		$client = new HttpClient([
+			'headers' => [
+				'X-StorageApi-Token' => $config['token'],
+				'User-Agent' => Client::USER_AGENT,
+			]
+		]);
 
-		// Setup exponential backoff
-		$backoffPlugin = BackoffPlugin::getExponentialBackoff();
-		$client->addSubscriber($backoffPlugin);
+		$serializer = new Serializer($serviceDescription, [
+			'bodyJsonString' => new RawBodyLocation(),
+		]);
+
+
+		$client = new self($client, $serviceDescription, $serializer);
+
+		//@TODO backoff
 
 		return $client;
 	}
@@ -59,8 +68,9 @@ class Client extends GuzzleClient
 	 */
 	public function getOrchestrations()
 	{
-		$result = $this->getCommand('GetOrchestrations')->execute();
-		return $result;
+		$command = $this->getCommand('GetOrchestrations');
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -79,12 +89,12 @@ class Client extends GuzzleClient
 		$params = $options;
 		$params['name'] = $name;
 
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'CreateOrchestration',
 			$params
-		)->execute();
+		);
 
-		return $result;
+		return $this->execute($command);
 	}
 
 	/**
@@ -105,11 +115,12 @@ class Client extends GuzzleClient
 		$params = $options;
 		$params['orchestrationId'] = $orchestrationId;
 
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'UpdateOrchestration',
 			$params
-		)->execute();
-		return $result;
+		);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -120,13 +131,14 @@ class Client extends GuzzleClient
 	 */
 	public function getOrchestration($orchestrationId)
 	{
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'GetOrchestration',
 			array(
 				'orchestrationId' => $orchestrationId
 			)
-		)->execute();
-		return $result;
+		);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -137,13 +149,14 @@ class Client extends GuzzleClient
 	 */
 	public function getOrchestrationJobs($orchestrationId)
 	{
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'GetOrchestrationJobs',
 			array(
 				'orchestrationId' => $orchestrationId
 			)
-		)->execute();
-		return $result;
+		);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -161,9 +174,10 @@ class Client extends GuzzleClient
 			)
 		);
 
-		$command->execute();
-		if ($command->getResponse()->getStatusCode() != 204)
+		$result = $this->execute($command);
+		if ($result['status'] != 204) {
 			return false;
+		}
 
 		return true;
 	}
@@ -176,13 +190,14 @@ class Client extends GuzzleClient
 	 */
 	public function getJob($jobId)
 	{
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'GetJob',
 			array(
 				'jobId' => $jobId
 			)
-		)->execute();
-		return $result;
+		);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -195,14 +210,15 @@ class Client extends GuzzleClient
 	 */
 	public function createJob($orchestrationId, $notificationsEmails = array())
 	{
-		$result = $this->getCommand(
+		$command = $this->getCommand(
 			'CreateJob',
 			array(
 				'orchestrationId' => $orchestrationId,
 				'notificationsEmails' => $notificationsEmails,
 			)
-		)->execute();
-		return $result;
+		);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -224,7 +240,9 @@ class Client extends GuzzleClient
 			$params['tasks'] = $tasks;
 		}
 
-		return $this->getCommand('RunOrchestration',$params)->execute();
+		$command = $this->getCommand('RunOrchestration',$params);
+
+		return $this->execute($command);
 	}
 
 	/**
@@ -242,9 +260,10 @@ class Client extends GuzzleClient
 			)
 		);
 
-		$command->execute();
-		if ($command->getResponse()->getStatusCode() != 204)
+		$result = $this->execute($command);
+		if ($result['status'] != 204) {
 			return false;
+		}
 
 		return true;
 	}
@@ -263,7 +282,12 @@ class Client extends GuzzleClient
 				throw new \InvalidArgumentException(sprintf('Task must be instance of %s', '\Keboola\Orchestrator\OrchestrationTask'));
 		}
 
-		$tasks = array_map(function($item) { return $item->toArray(); }, $tasks);
+		$tasks = array_map(
+			function(OrchestrationTask $item) {
+				return $item->toArray();
+			},
+			$tasks
+		);
 
 		$params = array('tasks' => json_encode($tasks));
 		$params['orchestrationId'] = $orchestrationId;
@@ -273,6 +297,6 @@ class Client extends GuzzleClient
 			$params
 		);
 
-		return $command->execute();
+		return $this->execute($command);
 	}
 }
