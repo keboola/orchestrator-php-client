@@ -70,7 +70,7 @@ class Client extends GuzzleClient
 	{
 		$command = $this->getCommand('GetOrchestrations');
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -94,7 +94,7 @@ class Client extends GuzzleClient
 			$params
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -120,7 +120,7 @@ class Client extends GuzzleClient
 			$params
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -138,7 +138,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -156,7 +156,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -174,7 +174,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		$result = $this->execute($command);
+		$result = $this->execute($command)->toArray();
 		if ($result['status'] != 204) {
 			return false;
 		}
@@ -197,7 +197,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -218,7 +218,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -242,7 +242,7 @@ class Client extends GuzzleClient
 
 		$command = $this->getCommand('RunOrchestration',$params);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 
 	/**
@@ -260,7 +260,7 @@ class Client extends GuzzleClient
 			)
 		);
 
-		$result = $this->execute($command);
+		$result = $this->execute($command)->toArray();
 		if ($result['status'] != 204) {
 			return false;
 		}
@@ -297,6 +297,6 @@ class Client extends GuzzleClient
 			$params
 		);
 
-		return $this->execute($command);
+		return $this->execute($command)->toArray();
 	}
 }
