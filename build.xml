@@ -6,7 +6,7 @@
 			depends="prepare,update,phpunit"/>
 
 	<target name="update"
-			depends="prepare,composerInstall,composerUpdate,composerDumpAutoload"
+			depends="prepare,composerInstall,composerDumpAutoload"
 			description="update application"/>
 
 	<target name="clean" description="Cleanup build artifacts">
@@ -30,16 +30,6 @@
 		</exec>
 	</target>
 
-
-	<target name="composerUpdate" depends="prepare">
-		<exec executable="php" failonerror="true">
-			<arg value="composer.phar"/>
-			<arg value="update"/>
-			<arg value="-n"/>
-			<arg value="--dev"/>
-		</exec>
-	</target>
-
 	<target name="composerDumpAutoload">
 		<exec executable="php" failonerror="true">
 			<arg value="composer.phar"/>
@@ -51,7 +41,7 @@
 
 
 	<target name="phpunit" description="Run unit tests with PHPUnit">
-		<exec executable="phpunit" failonerror="true">
+		<exec executable="${basedir}/vendor/bin/phpunit" failonerror="true">
 			<arg value="--configuration"/>
 			<arg path="${basedir}/phpunit.xml.dist"/>
 		</exec>
