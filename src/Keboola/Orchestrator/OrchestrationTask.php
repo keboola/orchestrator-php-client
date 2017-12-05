@@ -188,13 +188,12 @@ class OrchestrationTask
 	/**
 	 * Set task phase
 	 *
-	 * @param int $value
+	 * @param string $value
 	 * @return $this
 	 */
 	public function setPhase($value)
 	{
-		$value = (int) $value;
-		if ($value)
+		if (isset($value) && $value != '')
 			$this->phase = $value;
 		else
 			$this->phase = null;
