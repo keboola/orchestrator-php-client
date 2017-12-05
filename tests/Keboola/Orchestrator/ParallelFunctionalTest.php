@@ -4,59 +4,146 @@ namespace Keboola\Orchestrator\Tests;
 use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
 use Keboola\StorageApi\Client AS StorageApi;
+use Keboola\StorageApi\Components;
+use Keboola\StorageApi\Options\Components\Configuration;
+use Keboola\StorageApi\Options\Components\ListComponentConfigurationsOptions;
+use PHPUnit\Framework\TestCase;
 
-class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
+class ParallelFunctionalTest extends TestCase
 {
 	/**
 	 * @var OrchestratorApi
 	 */
-	private $client;
+	private static $client;
 
 	/**
 	 * @var StorageApi
 	 */
-	private $sapiClient;
+	private static $sapiClient;
 
 	const TESTING_ORCHESTRATION_NAME = 'PHP Client test';
 
-	public function setUp()
+	const TESTING_COMPONENT_ID = 'keboola.ex-db-snowflake';
+
+	private static $testComponentConfigId1 = null;
+	private static $testComponentConfigId2 = null;
+
+	public static function setUpBeforeClass()
 	{
-		$this->client = OrchestratorApi::factory(array(
+		self::$client = OrchestratorApi::factory(array(
 			'url' => FUNCTIONAL_ORCHESTRATOR_API_URL,
 			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
 		));
 
-		$this->sapiClient = new StorageApi(array(
+		self::$sapiClient = new StorageApi(array(
 			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
 			'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
 		));
-		$this->sapiClient->verifyToken();
 
-		// clean old tests
-		$this->cleanWorkspace();
+		self::$sapiClient->verifyToken();
+
+		// cleanup configurations
+		$components = new Components(self::$sapiClient);
+
+		$listOptions = new ListComponentConfigurationsOptions();
+		$listOptions->setComponentId(self::TESTING_COMPONENT_ID);
+
+		foreach ($components->listComponentConfigurations($listOptions) as $configuration) {
+			if ($configuration['name'] === self::TESTING_ORCHESTRATION_NAME) {
+				$components->deleteConfiguration(self::TESTING_COMPONENT_ID, $configuration['id']);
+			}
+		}
+
+		self::$testComponentConfigId1 = self::createTestExtractor();
+		self::$testComponentConfigId2 = self::createTestExtractor();
 	}
 
-	private function cleanWorkspace()
+	public function setUp()
 	{
-		$orchestrations = $this->client->getOrchestrations();
+		$orchestrations = self::$client->getOrchestrations();
 
 		foreach ($orchestrations AS $orchestration) {
-			if (strpos($orchestration['name'], self::TESTING_ORCHESTRATION_NAME) === false)
+			if (strpos($orchestration['name'], FunctionalTest::TESTING_ORCHESTRATION_NAME) === false)
 				continue;
 
-			$this->client->deleteOrchestration($orchestration['id']);
+			self::$client->deleteOrchestration($orchestration['id']);
 		}
 	}
 
-	private function createTestData()
+	private static function createTestExtractor($queryWait = null)
 	{
-		$tasks = array(
-			(new OrchestrationTask())
-				->setComponentUrl('https://syrup.keboola.com/timeout/timer')
-				->setActionParameters(array('sleep' => 30))
-		);
+		// create configuration
+		$components = new Components(self::$sapiClient);
 
-		return $tasks;
+		if ($queryWait) {
+			$parameters = [
+				'tables' => [
+					[
+						'id' => 1,
+						'outputTable' => 'in.c-php-orchestrator-tests.time',
+						'name' => 'Test Query',
+						'query' => 'SELECT SYSTEM$WAIT(' . $queryWait . ') AS "sample"',
+						'enabled' => true,
+					]
+				]
+			];
+		} else {
+			$parameters = [
+				'tables' => [
+					[
+						'id' => 1,
+						'outputTable' => 'in.c-php-orchestrator-tests.time',
+						'name' => 'Test Query',
+						'query' => 'SELECT CURRENT_DATE() AS "sample"',
+						'enabled' => true,
+					]
+				]
+			];
+
+		}
+
+		$configuration = new Configuration();
+		$configuration->setComponentId(FunctionalTest::TESTING_COMPONENT_ID);
+		$configuration->setName(FunctionalTest::TESTING_ORCHESTRATION_NAME);
+		$configuration->setDescription('used in orchestrator functional tests');
+		$configuration->setConfiguration(['parameters' => $parameters]);
+
+		$result = $components->addConfiguration($configuration);
+
+		// create workspace
+		$workspace = $components->createConfigurationWorkspace(FunctionalTest::TESTING_COMPONENT_ID, $result['id']);
+
+		// update configuration
+		$parameters['db'] = [
+			'host' => $workspace['connection']['host'],
+			'port' => null,
+			'database' => $workspace['connection']['database'],
+			'schema' => $workspace['connection']['schema'],
+			'warehouse' => $workspace['connection']['warehouse'],
+			'user' => $workspace['connection']['user'],
+			'password' => $workspace['connection']['password'],
+		];
+
+		$configuration->setConfiguration(['parameters' => $parameters]);
+		$configuration->setConfigurationId($result['id']);
+
+		$components->updateConfiguration($configuration);
+
+		return $result['id'];
+	}
+
+	/**
+	 * @return OrchestrationTask
+	 */
+	private function createTestTask($configId)
+	{
+		return (new OrchestrationTask())
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters([
+				'config' => $configId,
+			])
+		;
 	}
 
 	public function testOrchestrationsError()
@@ -66,17 +153,17 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 			'crontabRecord' => '1 1 1 1 1',
 		);
 
-		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+		$orchestration = self::$client->createOrchestration(sprintf('%s %s', FunctionalTest::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 
 		// orchestrations tasks
-		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestData());
+		$tasks = self::$client->updateTasks($orchestration['id'], [$this->createTestTask(self::$testComponentConfigId1)]);
 
 		// orchestration detail
-		$orchestration = $this->client->getOrchestration($orchestration['id']);
+		$orchestration = self::$client->getOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'getOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
@@ -89,35 +176,13 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 180,
-					)
-				),
-				1 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 20,
-						'status' => 'error',
-					)
-				),
-				2 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => null,
-					'actionParameters' => array(
-						'delay' => 20,
-					)
-				),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase(10)->toArray(),
+				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase(10)->setActionParameters(['configData' => ['configData' => []]])->toArray(),
+				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$orchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
@@ -127,7 +192,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->runOrchestration($orchestration['id']);
+		$job = self::$client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -138,7 +203,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		// wait for processing job
 		while (!$job['isFinished']) {
 			sleep(5);
-			$job = $this->client->getJob($job['id']);
+			$job = self::$client->getJob($job['id']);
 			$this->assertArrayHasKey('isFinished', $job);
 		}
 
@@ -217,17 +282,17 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 			'crontabRecord' => '1 1 1 1 1',
 		);
 
-		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+		$orchestration = self::$client->createOrchestration(sprintf('%s %s', FunctionalTest::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 
 		// orchestrations tasks
-		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestData());
+		$tasks = self::$client->updateTasks($orchestration['id'], [$this->createTestTask(self::$testComponentConfigId1)]);
 
 		// orchestration detail
-		$orchestration = $this->client->getOrchestration($orchestration['id']);
+		$orchestration = self::$client->getOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'getOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
@@ -236,38 +301,20 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$crontabRecord = '* * * * *';
 		$active = false;
 
+
+
+
 		$options = array(
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 180,
-					)
-				),
-				1 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 20,
-					)
-				),
-				2 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => null,
-					'actionParameters' => array(
-						'delay' => 20,
-					)
-				),
+				0 => $this->createTestTask(self::createTestExtractor(50))->setPhase(10)->toArray(),
+				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase(10)->toArray(),
+				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$orchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
@@ -277,7 +324,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($crontabRecord, $orchestration['crontabRecord'], "Result of API command 'updateOrchestration' should return modified orchestration");
 
 		// enqueue job
-		$job = $this->client->runOrchestration($orchestration['id']);
+		$job = self::$client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -288,7 +335,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		// wait for processing job
 		while (!$job['isFinished']) {
 			sleep(5);
-			$job = $this->client->getJob($job['id']);
+			$job = self::$client->getJob($job['id']);
 			$this->assertArrayHasKey('isFinished', $job);
 		}
 
@@ -356,42 +403,14 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$options = array(
 			'crontabRecord' => '1 1 1 1 1',
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "first phase",
-					'actionParameters' => array(
-						'delay' => 180,
-					)
-				),
-				2 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => null,
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				3 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "0",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				4 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('first phase')->toArray(),
+				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
+				3 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('0')->toArray(),
+				4 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('')->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
+		$orchestration = self::$client->createOrchestration(sprintf('%s %s', FunctionalTest::TESTING_ORCHESTRATION_NAME, uniqid()), $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('tasks', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
@@ -418,50 +437,15 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$options = array(
 			'crontabRecord' => '1 1 1 1 1',
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "first phase",
-					'actionParameters' => array(
-						'delay' => 180,
-					)
-				),
-				1 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "first phase",
-					'actionParameters' => array(
-						'delay' => 30,
-					)
-				),
-				2 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => null,
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				3 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "0",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				4 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('first phase')->toArray(),
+				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase('first phase')->toArray(),
+				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
+				3 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('0')->toArray(),
+				4 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('')->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$orchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('tasks', $orchestration, "Result of API command 'createOrchestration' should contain new created orchestration ID");
@@ -488,10 +472,10 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertNull($tasks[4]['phase']);
 
 		// orchestrations tasks
-		$tasks = $this->client->updateTasks($orchestration['id'], $this->createTestData());
+		$tasks = self::$client->updateTasks($orchestration['id'], [$this->createTestTask(self::$testComponentConfigId1)]);
 
 		// orchestration detail
-		$orchestration = $this->client->getOrchestration($orchestration['id']);
+		$orchestration = self::$client->getOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'getOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
 		$this->assertArrayHasKey('nextScheduledTime', $orchestration, "Result of API command 'getOrchestration' should return orchestration info");
@@ -504,50 +488,15 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "first phase",
-					'actionParameters' => array(
-						'delay' => 180,
-					)
-				),
-				1 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "first phase",
-					'actionParameters' => array(
-						'delay' => 30,
-					)
-				),
-				2 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => null,
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				3 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "0",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
-				4 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => "",
-					'actionParameters' => array(
-						'delay' => 5,
-					)
-				),
+				0 => $this->createTestTask(self::createTestExtractor(50))->setPhase('first phase')->toArray(),
+				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase('first phase')->toArray(),
+				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
+				3 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('0')->toArray(),
+				4 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('')->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$orchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 
 		$this->assertArrayHasKey('id', $orchestration, "Result of API command 'updateOrchestration' should contain new created orchestration ID");
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'updateOrchestration' should return orchestration info");
@@ -577,7 +526,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertNull($tasks[4]['phase']);
 
 		// enqueue job
-		$job = $this->client->runOrchestration($orchestration['id']);
+		$job = self::$client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'createJob' should return job info");
 		$this->assertArrayHasKey('status', $job, "Result of API command 'createJob' should return job info");
@@ -588,7 +537,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		// wait for processing job
 		while (!$job['isFinished']) {
 			sleep(5);
-			$job = $this->client->getJob($job['id']);
+			$job = self::$client->getJob($job['id']);
 			$this->assertArrayHasKey('isFinished', $job);
 		}
 
@@ -653,7 +602,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 	
 	public function testOrchestrationConfigOverwrite()
 	{
-		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+		$orchestration = self::$client->createOrchestration(sprintf('%s %s', FunctionalTest::TESTING_ORCHESTRATION_NAME, uniqid()));
 
 		// orchestration update
 		$options = array(
@@ -665,21 +614,14 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 				]
 			],
 			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 60,
-					)
-				),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase(10)->toArray(),
 			),
 		);
 
-		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$orchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 		$this->assertEquals($options['notifications'][0]['email'], $orchestration['notifications'][0]['email']);
 
-		$job = $this->client->runOrchestration($orchestration['id']);
+		$job = self::$client->runOrchestration($orchestration['id']);
 		$this->assertArrayHasKey('id', $job);
 		$this->assertArrayHasKey('status', $job);
 		$this->assertArrayHasKey('isFinished', $job);
@@ -690,29 +632,29 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		// wait for job start
 		while (!$job['startTime']) {
 			sleep(2);
-			$job = $this->client->getJob($job['id']);
+			$job = self::$client->getJob($job['id']);
 			$this->assertArrayHasKey('startTime', $job);
 			$this->assertArrayHasKey('isFinished', $job);
 		}
 
 		// orchestration update
 		$options['notifications'][0]['email'] = 'test' . FUNCTIONAL_ERROR_NOTIFICATION_EMAIL;
-		$options['tasks'][0]['actionParameters'] = ['delay' => 360];
+		$options['tasks'][0]['actionParameters'] = ['configData' => []];
 
-		$changedOrchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+		$changedOrchestration = self::$client->updateOrchestration($orchestration['id'], $options);
 		unset($changedOrchestration['lastExecutedJob']);
 
 		// wait for processing job
 		while (!$job['isFinished']) {
 			sleep(5);
-			$job = $this->client->getJob($job['id']);
+			$job = self::$client->getJob($job['id']);
 			$this->assertArrayHasKey('isFinished', $job);
 		}
 
 		$this->assertArrayHasKey('status', $job);
 
 		// compare orchestration configs
-		$finishedOrchestration = $this->client->getOrchestration($orchestration['id']);
+		$finishedOrchestration = self::$client->getOrchestration($orchestration['id']);
 		unset($finishedOrchestration['lastExecutedJob']);
 
 		$this->assertEquals($changedOrchestration, $finishedOrchestration);
