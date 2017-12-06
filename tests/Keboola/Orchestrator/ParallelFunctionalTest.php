@@ -308,7 +308,7 @@ class ParallelFunctionalTest extends TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => $this->createTestTask(self::createTestExtractor(50))->setPhase(10)->toArray(),
+				0 => $this->createTestTask(self::createTestExtractor(100))->setPhase(10)->toArray(),
 				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase(10)->toArray(),
 				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 			),
@@ -488,7 +488,7 @@ class ParallelFunctionalTest extends TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => $this->createTestTask(self::createTestExtractor(50))->setPhase('first phase')->toArray(),
+				0 => $this->createTestTask(self::createTestExtractor(100))->setPhase('first phase')->toArray(),
 				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase('first phase')->toArray(),
 				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 				3 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('0')->toArray(),
