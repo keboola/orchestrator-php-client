@@ -70,37 +70,22 @@ class ParallelFunctionalTest extends TestCase
 		}
 	}
 
-	private static function createTestExtractor($queryWait = null)
+	private static function createTestExtractor()
 	{
 		// create configuration
 		$components = new Components(self::$sapiClient);
 
-		if ($queryWait) {
-			$parameters = [
-				'tables' => [
-					[
-						'id' => 1,
-						'outputTable' => 'in.c-php-orchestrator-tests.time',
-						'name' => 'Test Query',
-						'query' => 'SELECT SYSTEM$WAIT(' . $queryWait . ') AS "sample"',
-						'enabled' => true,
-					]
+		$parameters = [
+			'tables' => [
+				[
+					'id' => 1,
+					'outputTable' => 'in.c-php-orchestrator-tests.time',
+					'name' => 'Test Query',
+					'query' => 'SELECT CURRENT_DATE() AS "sample"',
+					'enabled' => true,
 				]
-			];
-		} else {
-			$parameters = [
-				'tables' => [
-					[
-						'id' => 1,
-						'outputTable' => 'in.c-php-orchestrator-tests.time',
-						'name' => 'Test Query',
-						'query' => 'SELECT CURRENT_DATE() AS "sample"',
-						'enabled' => true,
-					]
-				]
-			];
-
-		}
+			]
+		];
 
 		$configuration = new Configuration();
 		$configuration->setComponentId(FunctionalTest::TESTING_COMPONENT_ID);
@@ -259,15 +244,15 @@ class ParallelFunctionalTest extends TestCase
 
 		// parallel job processing
 		$phase = $results['phases'][0];
-		$task1Start = new \DateTime($phase[0]['startTime']);
+		$task1Created = new \DateTime($phase[0]['response']['createdTime']);
 		$task1End = new \DateTime($phase[0]['endTime']);
 
-		$task2Start = new \DateTime($phase[1]['startTime']);
+		$task2Created = new \DateTime($phase[1]['response']['createdTime']);
 		$task2End = new \DateTime($phase[1]['endTime']);
 
 		$validTime = false;
-		if ($task1Start->getTimestamp() < $task2Start->getTimestamp()) {
-			if ($task1End->getTimestamp() > $task2End->getTimestamp()) {
+		if ($task1Created->getTimestamp() < $task2End->getTimestamp()) {
+			if ($task2Created->getTimestamp() < $task1End->getTimestamp()) {
 				$validTime = true;
 			}
 		}
@@ -308,7 +293,7 @@ class ParallelFunctionalTest extends TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => $this->createTestTask(self::createTestExtractor(100))->setPhase(10)->toArray(),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase(10)->toArray(),
 				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase(10)->toArray(),
 				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 			),
@@ -381,15 +366,15 @@ class ParallelFunctionalTest extends TestCase
 
 		// parallel job processing
 		$phase = $results['phases'][0];
-		$task1Start = new \DateTime($phase[0]['startTime']);
+		$task1Created = new \DateTime($phase[0]['startTime']);
 		$task1End = new \DateTime($phase[0]['endTime']);
 
-		$task2Start = new \DateTime($phase[1]['startTime']);
+		$task2Created = new \DateTime($phase[1]['startTime']);
 		$task2End = new \DateTime($phase[1]['endTime']);
 
 		$validTime = false;
-		if ($task1Start->getTimestamp() < $task2Start->getTimestamp()) {
-			if ($task1End->getTimestamp() > $task2End->getTimestamp()) {
+		if ($task1Created->getTimestamp() < $task2End->getTimestamp()) {
+			if ($task2Created->getTimestamp() < $task1End->getTimestamp()) {
 				$validTime = true;
 			}
 		}
@@ -488,7 +473,7 @@ class ParallelFunctionalTest extends TestCase
 			'active' => $active,
 			'crontabRecord' => $crontabRecord,
 			'tasks' => array(
-				0 => $this->createTestTask(self::createTestExtractor(100))->setPhase('first phase')->toArray(),
+				0 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('first phase')->toArray(),
 				1 => $this->createTestTask(self::$testComponentConfigId2)->setPhase('first phase')->toArray(),
 				2 => $this->createTestTask(self::$testComponentConfigId1)->toArray(),
 				3 => $this->createTestTask(self::$testComponentConfigId1)->setPhase('0')->toArray(),
@@ -584,15 +569,15 @@ class ParallelFunctionalTest extends TestCase
 
 		// parallel job processing
 		$phase = $results['phases'][0];
-		$task1Start = new \DateTime($phase[0]['startTime']);
+		$task1Created = new \DateTime($phase[0]['response']['createdTime']);
 		$task1End = new \DateTime($phase[0]['endTime']);
 
-		$task2Start = new \DateTime($phase[1]['startTime']);
+		$task2Created = new \DateTime($phase[1]['response']['createdTime']);
 		$task2End = new \DateTime($phase[1]['endTime']);
 
 		$validTime = false;
-		if ($task1Start->getTimestamp() < $task2Start->getTimestamp()) {
-			if ($task1End->getTimestamp() > $task2End->getTimestamp()) {
+		if ($task1Created->getTimestamp() < $task2End->getTimestamp()) {
+			if ($task2Created->getTimestamp() < $task1End->getTimestamp()) {
 				$validTime = true;
 			}
 		}
