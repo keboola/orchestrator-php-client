@@ -1,6 +1,7 @@
 <?php
 namespace Keboola\Orchestrator\Tests;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Command\Exception\CommandClientException;;
 use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
@@ -97,6 +98,24 @@ class FunctionalTest extends TestCase
 		// create workspace
 		$workspace = $components->createConfigurationWorkspace(self::TESTING_COMPONENT_ID, $result['id']);
 
+		// encrypt password
+		$tokendData = self::$sapiClient->verifyToken();
+		$guzzle = new Client();
+
+		$response = $guzzle->post(
+			sprintf(
+				'https://syrup.keboola.com/docker/encrypt?componentId=%s&projectId=%s',
+				self::TESTING_COMPONENT_ID,
+				$tokendData['owner']['id']
+			),
+			[
+				'body' => $workspace['connection']['password'],
+				'headers' => [
+					'Content-Type' => 'text/plain',
+				]
+			]
+		);
+
 		// update configuration
 		$parameters['db'] = [
 			'host' => $workspace['connection']['host'],
@@ -105,7 +124,7 @@ class FunctionalTest extends TestCase
 			'schema' => $workspace['connection']['schema'],
 			'warehouse' => $workspace['connection']['warehouse'],
 			'user' => $workspace['connection']['user'],
-			'password' => $workspace['connection']['password'],
+			'#password' => $response->getBody()->getContents(),
 		];
 
 		$configuration->setConfiguration(['parameters' => $parameters]);
