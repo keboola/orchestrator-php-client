@@ -348,6 +348,7 @@ class FunctionalTest extends TestCase
 		$result = self::$client->cancelJob($job['id']);
 		$this->assertTrue($result, "Result of API command 'cancelJob' should return TRUE");
 
+		sleep(10);
 		$job = self::$client->getJob($job['id']);
 		$this->assertArrayHasKey('id', $job, "Result of API command 'getJob' should contain job ID");
 		$this->assertArrayHasKey('orchestrationId', $job, "Result of API command 'getJob' should return job info");
