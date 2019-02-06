@@ -210,12 +210,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$this->waitForJobFinish($job['id']);
 
 		$job = $this->client->runOrchestration($orchestration['id']);
 
@@ -235,14 +230,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
 
-		// wait for job processing
-		while (in_array($job['status'], array('waiting'))) {
-			sleep(3);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
-		}
-
-		$processingJob = $job;
+		$this->waitForJobStart($job['id']);
 
 		// job cancel
 		$job = $this->client->runOrchestration($orchestration['id']);
@@ -271,20 +259,14 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 
 
 		// job stats
-
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
 		$errorsCount = 0;
 		$cancelledCount = 0;
 		$successCount = 0;
 		$processingCount = 0;
 		$warnCount = 0;
 		$otherCount = 0;
+
+		$this->waitForJobFinish($job['id']);
 
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		foreach ($jobs AS $job) {
@@ -465,12 +447,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$job = $this->waitForJobFinish($job['id']);
 
 		$this->assertArrayHasKey('status', $job);
 		$job = $this->client->runOrchestration($orchestration['id']);
@@ -491,31 +468,15 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'getJob' should return job for given orchestration");
 
-		// wait for job processing
-		while (in_array($job['status'], array('waiting'))) {
-			sleep(3);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('status', $job, "Result of API command 'getJob' should return job info");
-			$this->assertArrayHasKey('isFinished', $job, "Result of API command 'getJob' should contain isFinished status");
-		}
-
-		$processingJob = $job;
-
 		// job stats
-
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
 		$errorsCount = 0;
 		$cancelledCount = 0;
 		$successCount = 0;
 		$processingCount = 0;
 		$warnCount = 0;
 		$otherCount = 0;
+
+		$job = $this->waitForJobFinish($job['id']);
 
 		$jobs = $this->client->getOrchestrationJobs($orchestration['id']);
 		foreach ($jobs AS $job) {
@@ -594,12 +555,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('id', $job, "Result of API command 'createJob' should contain new created job ID");
 		$this->assertArrayHasKey('isFinished', $job, "Result of API command 'createJob' should contain isFinished status");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$job = $this->waitForJobFinish($job['id']);
 
 		$this->assertArrayHasKey('status', $job);
 		$this->assertEquals('error', $job['status']);
@@ -656,13 +612,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 		$this->assertEquals($notifications, $job['notificationsEmails']);
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
+		$this->waitForJobFinish($job['id']);
 
 		// BC old run
 		$job = $this->client->createJob($orchestration['id'], $notifications);
@@ -676,12 +626,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 		$this->assertEquals($notifications, $job['notificationsEmails']);
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$this->waitForJobFinish($job['id']);
 	}
 
 	public function testOrchestrationRunWithTasks()
@@ -714,12 +659,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status']);
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$job = $this->waitForJobFinish($job['id']);
 
 		$this->assertArrayHasKey('tasks', $job);
 		$this->assertCount(1, $job['tasks']);
@@ -778,5 +718,41 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertEquals('warning', $response['status']);
 			$this->assertEquals('JOB_VALIDATION', $response['code']);
 		}
+	}
+
+	private function waitForJobFinish($jobId)
+	{
+		$retries = 0;
+		$job = null;
+
+		// poll for status
+		do {
+			if ($retries > 0) {
+				sleep(min(pow(2, $retries), 20));
+			}
+			$retries++;
+			$job = $this->client->getJob($jobId);
+			$jobId = $job['id'];
+		} while (!$job['isFinished']);
+
+		return $job;
+	}
+
+	private function waitForJobStart($jobId)
+	{
+		$retries = 0;
+		$job = null;
+
+		// poll for status
+		do {
+			if ($retries > 0) {
+				sleep(min(pow(2, $retries), 20));
+			}
+			$retries++;
+			$job = $this->client->getJob($jobId);
+			$jobId = $job['id'];
+		} while ($job['status'] === 'waiting');
+
+		return $job;
 	}
 }

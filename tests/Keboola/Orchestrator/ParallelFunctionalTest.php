@@ -135,14 +135,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
-		$this->assertArrayHasKey('status', $job);
+		$job = $this->waitForJobFinish($job['id']);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
@@ -285,14 +278,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
-		$this->assertArrayHasKey('status', $job);
+		$job = $this->waitForJobFinish($job['id']);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
@@ -585,14 +571,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status'], "Result of API command 'createJob' should return new waiting job");
 		$this->assertEquals($orchestration['id'], $job['orchestrationId'], "Result of API command 'createJob' should return new waiting job for given orchestration");
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
-		$this->assertArrayHasKey('status', $job);
+		$job = $this->waitForJobFinish($job['id']);
 
 		// phases and tasks results in response
 		$this->assertArrayHasKey('results', $job, "Result of API command 'getJob' should return results");
@@ -687,13 +666,7 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals('waiting', $job['status']);
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 
-		// wait for job start
-		while (!$job['startTime']) {
-			sleep(2);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('startTime', $job);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
+		$this->waitForJobStart($job['id']);
 
 		// orchestration update
 		$options['notifications'][0]['email'] = 'test' . FUNCTIONAL_ERROR_NOTIFICATION_EMAIL;
@@ -702,19 +675,48 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		$changedOrchestration = $this->client->updateOrchestration($orchestration['id'], $options);
 		unset($changedOrchestration['lastExecutedJob']);
 
-		// wait for processing job
-		while (!$job['isFinished']) {
-			sleep(5);
-			$job = $this->client->getJob($job['id']);
-			$this->assertArrayHasKey('isFinished', $job);
-		}
-
-		$this->assertArrayHasKey('status', $job);
+		$this->waitForJobFinish($job['id']);
 
 		// compare orchestration configs
 		$finishedOrchestration = $this->client->getOrchestration($orchestration['id']);
 		unset($finishedOrchestration['lastExecutedJob']);
 
 		$this->assertEquals($changedOrchestration, $finishedOrchestration);
+	}
+
+	private function waitForJobFinish($jobId)
+	{
+		$retries = 0;
+		$job = null;
+
+		// poll for status
+		do {
+			if ($retries > 0) {
+				sleep(min(pow(2, $retries), 20));
+			}
+			$retries++;
+			$job = $this->client->getJob($jobId);
+			$jobId = $job['id'];
+		} while (!$job['isFinished']);
+
+		return $job;
+	}
+
+	private function waitForJobStart($jobId)
+	{
+		$retries = 0;
+		$job = null;
+
+		// poll for status
+		do {
+			if ($retries > 0) {
+				sleep(min(pow(2, $retries), 20));
+			}
+			$retries++;
+			$job = $this->client->getJob($jobId);
+			$jobId = $job['id'];
+		} while ($job['status'] === 'waiting');
+
+		return $job;
 	}
 }
