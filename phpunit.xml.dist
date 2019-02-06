@@ -16,6 +16,7 @@
 
     <testsuites>
         <testsuite name="KeboolaOrchestratorTests">
+            <file>tests/Keboola/Orchestrator/ClientTest.php</file>
             <file>tests/Keboola/Orchestrator/FunctionalTest.php</file>
             <file>tests/Keboola/Orchestrator/ParallelFunctionalTest.php</file>
         </testsuite>
