@@ -2,61 +2,17 @@
 namespace Keboola\Orchestrator\Tests;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
-use GuzzleHttp\Exception\ClientException;
-use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
-use Keboola\StorageApi\Client AS StorageApi;
-use Keboola\StorageApi\Table;
 
-class FunctionalTest extends \PHPUnit_Framework_TestCase
+class FunctionalTest extends AbstractFunctionalTest
 {
-	/**
-	 * @var OrchestratorApi
-	 */
-	private $client;
-
-	/**
-	 * @var StorageApi
-	 */
-	private $sapiClient;
-
-	const TESTING_ORCHESTRATION_NAME = 'PHP Client test';
-
-	public function setUp()
-	{
-		$this->client = OrchestratorApi::factory(array(
-			'url' => FUNCTIONAL_ORCHESTRATOR_API_URL,
-			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
-		));
-
-		$this->sapiClient = new StorageApi(array(
-			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
-			'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
-		));
-		$this->sapiClient->verifyToken();
-
-		// clean old tests
-		$this->cleanWorkspace();
-	}
-
-	private function cleanWorkspace()
-	{
-		$orchestrations = $this->client->getOrchestrations();
-
-		foreach ($orchestrations AS $orchestration) {
-			if (strpos($orchestration['name'], self::TESTING_ORCHESTRATION_NAME) === false)
-				continue;
-
-			$this->client->deleteOrchestration($orchestration['id']);
-		}
-	}
-
 	private function createTestDataWithWarn()
 	{
 		$tasks = array();
 
 		array_push($tasks, (new OrchestrationTask())
 			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
+			->setComponent(self::TESTING_COMPONENT_ID)
 			->setContinueOnFailure(true));
 
 		array_push($tasks, (new OrchestrationTask())
@@ -178,12 +134,13 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 
 		// update tasks
-		$url = 'https://syrup.keboola.com/timeout/asynchronous';
 		$sapiTask = new OrchestrationTask();
 		$sapiTask->setActive(false)
 			->setContinueOnFailure(false)
-			->setComponent(null)
-			->setComponentUrl($url);
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(array('config' => $this->testComponentConfigurationId))
+		;
 
 		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
 
@@ -191,6 +148,7 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 
 		// new
 		$job = $this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->setActive(true)->toArray()));
+
 
 		$this->assertArrayHasKey('id', $job);
 		$this->assertArrayHasKey('orchestrationId', $job);
@@ -231,19 +189,20 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 
 		// update tasks
-		$url = 'https://syrup.keboola.com/timeout/asynchronous';
 		$sapiTask = new OrchestrationTask();
-		$sapiTask->setActive(true)
+		$sapiTask->setActive(false)
 			->setContinueOnFailure(false)
-			->setComponent(null)
-			->setComponentUrl($url);
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(array('config' => $this->testComponentConfigurationId))
+		;
 
 		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
 
 		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
 
 		// new
-		$sapiTask->setComponentUrl('https://syrup.keboola.com/timeout/timer');
+		$sapiTask->setAction('test');
 
 		try {
 			$this->client->runOrchestration($orchestration['id'], array(), array($sapiTask->toArray()));
@@ -258,41 +217,5 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 			$this->assertEquals('warning', $response['status']);
 			$this->assertEquals('JOB_VALIDATION', $response['code']);
 		}
-	}
-
-	private function waitForJobFinish($jobId)
-	{
-		$retries = 0;
-		$job = null;
-
-		// poll for status
-		do {
-			if ($retries > 0) {
-				sleep(min(pow(2, $retries), 20));
-			}
-			$retries++;
-			$job = $this->client->getJob($jobId);
-			$jobId = $job['id'];
-		} while (!$job['isFinished']);
-
-		return $job;
-	}
-
-	private function waitForJobStart($jobId)
-	{
-		$retries = 0;
-		$job = null;
-
-		// poll for status
-		do {
-			if ($retries > 0) {
-				sleep(min(pow(2, $retries), 20));
-			}
-			$retries++;
-			$job = $this->client->getJob($jobId);
-			$jobId = $job['id'];
-		} while ($job['status'] === 'waiting');
-
-		return $job;
 	}
 }
