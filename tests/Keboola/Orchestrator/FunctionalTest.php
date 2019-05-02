@@ -11,15 +11,17 @@ class FunctionalTest extends AbstractFunctionalTest
 		$tasks = array();
 
 		array_push($tasks, (new OrchestrationTask())
-			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
 			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(['config' => []])
 			->setContinueOnFailure(true));
 
 		array_push($tasks, (new OrchestrationTask())
-			->setComponentUrl('https://syrup.keboola.com/timeout/timer')
-			->setActionParameters(array('sleep' => 3))
-		);
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(array('config' => $this->testComponentConfigurationId))
 
+		);
 
 		return $tasks;
 	}
@@ -53,6 +55,7 @@ class FunctionalTest extends AbstractFunctionalTest
 
 		$job = $this->waitForJobFinish($job['id']);
 
+		// main job validation
 		$this->assertArrayHasKey('status', $job);
 		$this->assertEquals('error', $job['status']);
 
@@ -61,16 +64,18 @@ class FunctionalTest extends AbstractFunctionalTest
 
 		$this->assertEquals(1, count($job['results']['tasks']));
 
-		foreach ($job['results']['tasks'] as $task) {
-			$this->assertArrayHasKey('status', $task);
-			$this->assertArrayHasKey('response', $task);
+		$taskResult = reset($job['results']['tasks']);
 
-			$this->assertArrayHasKey('status', $task['response']);
-			$this->assertArrayHasKey('isFinished', $task['response']);
+		$this->assertArrayHasKey('status', $taskResult);
+		$this->assertArrayHasKey('response', $taskResult);
 
-			$this->assertTrue($task['response']['isFinished']);
-			$this->assertEquals($task['response']['status'], $task['status']);
-		}
+		$this->assertArrayHasKey('status', $taskResult['response']);
+		$this->assertArrayHasKey('isFinished', $taskResult['response']);
+
+		$this->assertTrue($taskResult['response']['isFinished']);
+		$this->assertEquals($taskResult['response']['status'], $taskResult['status']);
+
+		$this->assertEquals('warning', $taskResult['status']);
 	}
 
 	public function testOrchestrationRunWithEmails()
