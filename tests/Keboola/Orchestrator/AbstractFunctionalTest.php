@@ -1,5 +1,5 @@
 <?php
-namespace Keboola\Orchestrator\Tests;
+namespace Keboola\Tests\Orchestrator;
 
 use GuzzleHttp\Client;
 use Keboola\Orchestrator\Client AS OrchestratorApi;

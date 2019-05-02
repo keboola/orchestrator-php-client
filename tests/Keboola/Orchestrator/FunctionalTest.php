@@ -1,5 +1,5 @@
 <?php
-namespace Keboola\Orchestrator\Tests;
+namespace Keboola\Tests\Orchestrator;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Keboola\Orchestrator\OrchestrationTask;
@@ -82,17 +82,17 @@ class FunctionalTest extends AbstractFunctionalTest
 		$this->assertArrayHasKey('crontabRecord', $orchestration, "Result of API command 'createOrchestration' should return orchestration info");
 
 		// update tasks
-		$url = 'https://syrup.keboola.com/timeout/asynchronous';
 		$sapiTask = new OrchestrationTask();
 		$sapiTask->setActive(true)
-			->setContinueOnFailure(false)
-			->setComponent(null)
-			->setComponentUrl($url);
+			->setContinueOnFailure(true)
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(array('config' => $this->testComponentConfigurationId))
+		;
 
 		$tasks = $this->client->updateTasks($orchestration['id'], array($sapiTask));
 
 		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
-
 
 		$notifications = array(FUNCTIONAL_ERROR_NOTIFICATION_EMAIL);
 
@@ -108,7 +108,10 @@ class FunctionalTest extends AbstractFunctionalTest
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 		$this->assertEquals($notifications, $job['notificationsEmails']);
 
-		$this->waitForJobFinish($job['id']);
+		$job = $this->waitForJobFinish($job['id']);
+
+		$this->assertArrayHasKey('status', $job);
+		$this->assertEquals('success', $job['status']);
 
 		// BC old run
 		$job = $this->client->createJob($orchestration['id'], $notifications);
@@ -122,7 +125,10 @@ class FunctionalTest extends AbstractFunctionalTest
 		$this->assertEquals($orchestration['id'], $job['orchestrationId']);
 		$this->assertEquals($notifications, $job['notificationsEmails']);
 
-		$this->waitForJobFinish($job['id']);
+		$job = $this->waitForJobFinish($job['id']);
+
+		$this->assertArrayHasKey('status', $job);
+		$this->assertEquals('success', $job['status']);
 	}
 
 	public function testOrchestrationRunWithTasks()
