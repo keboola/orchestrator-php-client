@@ -1,6 +1,6 @@
 <?php
 
-namespace Keboola\Orchestrator\Tests;
+namespace Keboola\Tests\Orchestrator;
 
 use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
