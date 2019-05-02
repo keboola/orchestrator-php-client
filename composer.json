@@ -7,6 +7,11 @@
 			"Keboola": "src/"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"Keboola\\Tests\\Orchestrator\\": "tests/Keboola/Orchestrator"
+		}
+	},
 	"require-dev": {
 		"phpunit/phpunit": "3.7.*",
 		"keboola/storage-api-client": "6.1.*"
