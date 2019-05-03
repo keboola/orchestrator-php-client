@@ -6,6 +6,11 @@ use Keboola\Tests\Orchestrator\AbstractFunctionalTest;
 
 class ParallelFunctionalTest extends AbstractFunctionalTest
 {
+	/**
+	 * @param string $configurationId
+	 * @param string|null $phaseName
+	 * @return OrchestrationTask
+	 */
 	private function createTestOrchestrationTask($configurationId, $phaseName = null)
 	{
 		return (new OrchestrationTask())
@@ -100,7 +105,7 @@ class ParallelFunctionalTest extends AbstractFunctionalTest
 		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
 
 		// orchestration update
-		$options = array(
+		$options = [
 			'active' => false,
 			'notifications' => [
 				[
@@ -108,17 +113,12 @@ class ParallelFunctionalTest extends AbstractFunctionalTest
 					"email" => FUNCTIONAL_ERROR_NOTIFICATION_EMAIL,
 				]
 			],
-			'tasks' => array(
-				0 => array(
-					'componentUrl' => 'https://syrup.keboola.com/timeout/jobs',
-					'active' => true,
-					'phase' => 10,
-					'actionParameters' => array(
-						'delay' => 60,
-					)
-				),
-			),
-		);
+			'tasks' => [
+				$this->createTestOrchestrationTask($this->testComponentConfigurationId, 1)->toArray(),
+				$this->createTestOrchestrationTask($this->testComponentConfigurationId, 2)->toArray(),
+				$this->createTestOrchestrationTask($this->testComponentConfigurationId, 3)->toArray(),
+			],
+		];
 
 		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
 		$this->assertEquals($options['notifications'][0]['email'], $orchestration['notifications'][0]['email']);
@@ -139,6 +139,11 @@ class ParallelFunctionalTest extends AbstractFunctionalTest
 
 		$changedOrchestration = $this->client->updateOrchestration($orchestration['id'], $options);
 		unset($changedOrchestration['lastExecutedJob']);
+
+		$job = $this->client->getJob($job['id']);
+
+		$this->assertArrayHasKey('isFinished', $job);
+		$this->assertFalse($job['isFinished']);
 
 		$this->waitForJobFinish($job['id']);
 
