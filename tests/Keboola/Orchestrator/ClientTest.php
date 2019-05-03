@@ -202,23 +202,31 @@ class ClientTest extends \PHPUnit_Framework_TestCase
             ->setContinueOnFailure(false)
             ->setActionParameters(array('type' => 'jupyter'));
 
-        $task2 = (new OrchestrationTask())
-            ->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
-            ->setActive(false)
-            ->setContinueOnFailure(true)
-            ->setTimeoutMinutes(10)
-            ->setPhase(123);
+		$task2 = (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
+			->setActive(false)
+			->setContinueOnFailure(true)
+			->setTimeoutMinutes(10)
+			->setPhase(123);
 
-        $name = $this->generateTestOrchestrationName('testOrchestrationCreateWithTasks');
+		$task3 = (new OrchestrationTask())
+			->setComponentUrl('https://connection.keboola.com/v2/storage/tokens/')
+			->setActive(false)
+			->setContinueOnFailure(true)
+			->setTimeoutMinutes(10)
+			->setPhase('my-phase');
+
+		$name = $this->generateTestOrchestrationName('testOrchestrationCreateWithTasks');
         $orchestration = $this->client->createOrchestration($name, array(
             'tasks' => array(
                 $task1->toArray(),
                 $task2->toArray(),
+                $task3->toArray(),
             )
         ));
 
         $tasksData = $orchestration['tasks'];
-        $this->assertCount(2, $tasksData);
+        $this->assertCount(3, $tasksData);
 
         foreach ($tasksData as $taskData) {
             $this->assertArrayHasKey('id', $taskData);
@@ -254,7 +262,21 @@ class ClientTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($task2Data['active']);
         $this->assertTrue($task2Data['continueOnFailure']);
         $this->assertNotNull($task2Data['phase']);
-        $this->assertSame((string)$task2->getPhase(), $task2Data['phase']);
+        $this->assertSame('123', $task2Data['phase']);
+
+        $task3Data = $tasksData[2];
+        $this->assertArrayNotHasKey('component', $task3Data);
+        $this->assertArrayNotHasKey('action', $task3Data);
+        $this->assertArrayHasKey('componentUrl', $task3Data);
+        $this->assertSame($task3->getComponentUrl(), $task3Data['componentUrl']);
+
+        $this->assertSame($task3->getActionParameters(), $task3Data['actionParameters']);
+        $this->assertNotNull($task3Data['timeoutMinutes']);
+        $this->assertSame($task3->getTimeoutMinutes(), $task3Data['timeoutMinutes']);
+        $this->assertFalse($task3Data['active']);
+        $this->assertTrue($task3Data['continueOnFailure']);
+        $this->assertNotNull($task3Data['phase']);
+        $this->assertSame('my-phase', $task3Data['phase']);
 
         $this->assertEquals($orchestration, $this->client->getOrchestration($orchestration['id']));
     }
