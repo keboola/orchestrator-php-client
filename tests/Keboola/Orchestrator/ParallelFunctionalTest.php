@@ -1,53 +1,11 @@
 <?php
 namespace Keboola\Orchestrator\Tests;
 
-use Keboola\Orchestrator\Client AS OrchestratorApi;
 use Keboola\Orchestrator\OrchestrationTask;
-use Keboola\StorageApi\Client AS StorageApi;
+use Keboola\Tests\Orchestrator\AbstractFunctionalTest;
 
-class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
+class ParallelFunctionalTest extends AbstractFunctionalTest
 {
-	/**
-	 * @var OrchestratorApi
-	 */
-	private $client;
-
-	/**
-	 * @var StorageApi
-	 */
-	private $sapiClient;
-
-	const TESTING_ORCHESTRATION_NAME = 'PHP Client test';
-
-	public function setUp()
-	{
-		$this->client = OrchestratorApi::factory(array(
-			'url' => FUNCTIONAL_ORCHESTRATOR_API_URL,
-			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
-		));
-
-		$this->sapiClient = new StorageApi(array(
-			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
-			'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
-		));
-		$this->sapiClient->verifyToken();
-
-		// clean old tests
-		$this->cleanWorkspace();
-	}
-
-	private function cleanWorkspace()
-	{
-		$orchestrations = $this->client->getOrchestrations();
-
-		foreach ($orchestrations AS $orchestration) {
-			if (strpos($orchestration['name'], self::TESTING_ORCHESTRATION_NAME) === false)
-				continue;
-
-			$this->client->deleteOrchestration($orchestration['id']);
-		}
-	}
-
 	private function createTestData()
 	{
 		$tasks = array(
@@ -538,41 +496,5 @@ class ParallelFunctionalTest extends \PHPUnit_Framework_TestCase
 		unset($finishedOrchestration['lastExecutedJob']);
 
 		$this->assertEquals($changedOrchestration, $finishedOrchestration);
-	}
-
-	private function waitForJobFinish($jobId)
-	{
-		$retries = 0;
-		$job = null;
-
-		// poll for status
-		do {
-			if ($retries > 0) {
-				sleep(min(pow(2, $retries), 20));
-			}
-			$retries++;
-			$job = $this->client->getJob($jobId);
-			$jobId = $job['id'];
-		} while (!$job['isFinished']);
-
-		return $job;
-	}
-
-	private function waitForJobStart($jobId)
-	{
-		$retries = 0;
-		$job = null;
-
-		// poll for status
-		do {
-			if ($retries > 0) {
-				sleep(min(pow(2, $retries), 20));
-			}
-			$retries++;
-			$job = $this->client->getJob($jobId);
-			$jobId = $job['id'];
-		} while ($job['status'] === 'waiting');
-
-		return $job;
 	}
 }
