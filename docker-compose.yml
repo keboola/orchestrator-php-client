@@ -1,0 +1,14 @@
+version: '2'
+services:
+  tests:
+    build: .
+    image: keboola/orchestrator-php-client
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./:/code
+    working_dir: /code
+    environment:
+      - ORCHESTRATOR_API_URL
+      - ORCHESTRATOR_API_TOKEN
+      - ERROR_NOTIFICATION_EMAIL
