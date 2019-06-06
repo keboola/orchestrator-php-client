@@ -12,3 +12,8 @@ services:
       - ORCHESTRATOR_API_URL
       - ORCHESTRATOR_API_TOKEN
       - ERROR_NOTIFICATION_EMAIL
+
+networks:
+  default:
+    external:
+      name: syrup-router_api-tests
