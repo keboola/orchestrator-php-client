@@ -110,7 +110,7 @@ class ParallelFunctionalTest extends AbstractFunctionalTest
 			'notifications' => [
 				[
 					"channel" => "error",
-					"email" => FUNCTIONAL_ERROR_NOTIFICATION_EMAIL,
+					"email" => getenv('ERROR_NOTIFICATION_EMAIL'),
 				]
 			],
 			'tasks' => [
@@ -134,7 +134,7 @@ class ParallelFunctionalTest extends AbstractFunctionalTest
 		$this->waitForJobStart($job['id']);
 
 		// orchestration update
-		$options['notifications'][0]['email'] = 'test' . FUNCTIONAL_ERROR_NOTIFICATION_EMAIL;
+		$options['notifications'][0]['email'] = 'test' . getenv('ERROR_NOTIFICATION_EMAIL');
 		$options['tasks'][0]['actionParameters'] = ['delay' => 360];
 
 		$changedOrchestration = $this->client->updateOrchestration($orchestration['id'], $options);

@@ -22,12 +22,12 @@ class ClientTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->client = OrchestratorApi::factory(array(
-            'url' => FUNCTIONAL_ORCHESTRATOR_API_URL,
-            'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
+            'url' => getenv('ORCHESTRATOR_API_URL'),
+            'token' => getenv('ORCHESTRATOR_API_TOKEN')
         ));
 
         $this->sapiClient = new StorageApi(array(
-            'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
+            'token' => getenv('ORCHESTRATOR_API_TOKEN'),
             'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
         ));
         $this->sapiClient->verifyToken();
@@ -137,7 +137,7 @@ class ClientTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('nextScheduledTime', $orchestration);
 
         $this->assertArrayHasKey('uri', $orchestration);
-        $this->assertContains(FUNCTIONAL_ORCHESTRATOR_API_URL, $orchestration['uri']);
+        $this->assertContains(getenv('ORCHESTRATOR_API_URL'), $orchestration['uri']);
         $this->assertContains((string)$orchestration['id'], $orchestration['uri']);
 
         $this->assertArrayHasKey('lastScheduledTime', $orchestration);
