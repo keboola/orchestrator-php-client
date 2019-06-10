@@ -9,16 +9,14 @@
          stopOnFailure="true"
          stopOnError="true"
          syntaxCheck="false"
-         bootstrap="bootstrap.php">
+         bootstrap="tests/bootstrap.php">
     <php>
         <ini name="display_errors" value="true"/>
     </php>
 
     <testsuites>
         <testsuite name="KeboolaOrchestratorTests">
-            <file>tests/Keboola/Orchestrator/ClientTest.php</file>
-            <file>tests/Keboola/Orchestrator/FunctionalTest.php</file>
-            <file>tests/Keboola/Orchestrator/ParallelFunctionalTest.php</file>
+            <directory>tests/Keboola/Orchestrator</directory>
         </testsuite>
     </testsuites>
 </phpunit>

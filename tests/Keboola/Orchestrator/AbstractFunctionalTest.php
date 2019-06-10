@@ -37,7 +37,6 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
 
 		$this->sapiClient = new StorageApi(array(
 			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
-			'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
 		));
 
 		$token = $this->sapiClient->verifyToken();

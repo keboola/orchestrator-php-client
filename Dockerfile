@@ -17,4 +17,4 @@ RUN echo "memory_limit = -1" >> /usr/local/etc/php/php.ini
 RUN echo "date.timezone = \"Europe/Prague\"" >> /usr/local/etc/php/php.ini
 RUN composer selfupdate && composer install --no-scripts --no-autoloader
 
-CMD composer install
+RUN composer install
