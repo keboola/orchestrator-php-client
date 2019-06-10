@@ -12,4 +12,4 @@ install:
   - docker-compose build tests
 
 script:
-  - docker-compose run --rm tests
+  - docker-compose run --rm tests ./vendor/bin/phpunit
