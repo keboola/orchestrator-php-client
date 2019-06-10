@@ -31,12 +31,12 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
 	public function setUp()
 	{
 		$this->client = OrchestratorApi::factory(array(
-			'url' => getenv('ORCHESTRATOR_API_URL'),
-			'token' => getenv('ORCHESTRATOR_API_TOKEN')
+			'url' => FUNCTIONAL_ORCHESTRATOR_API_URL,
+			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN
 		));
 
 		$this->sapiClient = new StorageApi(array(
-			'token' => getenv('ORCHESTRATOR_API_TOKEN'),
+			'token' => FUNCTIONAL_ORCHESTRATOR_API_TOKEN,
 			'url' => defined('FUNCTIONAL_SAPI_URL') ? FUNCTIONAL_SAPI_URL : null
 		));
 

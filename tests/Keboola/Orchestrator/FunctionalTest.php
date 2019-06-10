@@ -45,7 +45,7 @@ class FunctionalTest extends AbstractFunctionalTest
 		$this->client->updateTasks($childOrchestration['id'], $this->createTestDataWithWarn());
 
 		$task = new OrchestrationTask();
-		$task->setComponentUrl(getenv('ORCHESTRATOR_API_URL') . '/run')->setActionParameters(['config' => $childOrchestration['id']]);
+		$task->setComponentUrl(FUNCTIONAL_ORCHESTRATOR_API_URL . '/run')->setActionParameters(['config' => $childOrchestration['id']]);
 
 		$this->client->updateTasks($masterOrchestration['id'], [$task]);
 
@@ -99,7 +99,7 @@ class FunctionalTest extends AbstractFunctionalTest
 
 		$this->assertCount(1, $tasks, sprintf("Result of API command 'updateTasks' should return %i tasks", 1));
 
-		$notifications = array(getenv('ERROR_NOTIFICATION_EMAIL'));
+		$notifications = array(FUNCTIONAL_ERROR_NOTIFICATION_EMAIL);
 
 		// new run
 		$job = $this->client->runOrchestration($orchestration['id'], $notifications);
