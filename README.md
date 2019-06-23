@@ -1,5 +1,7 @@
 # Keboola Orchestrator API PHP client
 
+[![Build Status](https://travis-ci.com/keboola/orchestrator-php-client.svg?branch=master)](https://travis-ci.com/keboola/orchestrator-php-client)
+
 Simple PHP wrapper library for [Keboola Orchestrator REST API](http://docs.keboolaorchestratorv2api.apiary.io/)
 
 ## Installation
@@ -17,8 +19,8 @@ To start using composer in your project follow these steps:
 
     {
         "require": {
-            "php" : ">=5.3.2",
-            "keboola/orchestrator-php-client": "1.0.*"
+            "php" : ">=5.6",
+            "keboola/orchestrator-php-client": "1.3.*"
         }
     }
 
@@ -55,12 +57,26 @@ use Keboola\Orchestrator\Client;
 
 
 
-
 ## Tests
-Tests requires valid Storage API token and URL of API.
-You can set these by copying file config.template.php into config.php and filling required constants int config.php file. Other way to provide parameters is to set environment variables:
 
-**Never run this tests on production user with real data, always create user for testing purposes!!!**
+To run tests you need **Storage API token** to an **empty project** in Keboola Connection. The project must be in **US region**.
 
-When the parameters are set you can run tests by **phpunit** command. 
+Create `.env` file with environment variables:
 
+```bash
+ORCHESTRATOR_API_URL=https://syrup.keboola.com/orchestrator/
+ORCHESTRATOR_API_TOKEN=your_token
+ERROR_NOTIFICATION_EMAIL={your_email}
+```
+ 
+- `ORCHESTRATOR_API_URL` - Url of Orchestrator Rest API endpoint
+- `ORCHESTRATOR_API_TOKEN` - Valid Storage API token. Token must have `canManageTokens` permissions.
+- `ERROR_NOTIFICATION_EMAIL` - Your email address. It will be used in orchestrator notification settings.
+
+Build image and run tests
+
+```bash
+docker network create syrup-router_api-tests
+docker-compose build tests
+docker-compose run --rm tests ./vendor/bin/phpunit
+``` 

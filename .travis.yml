@@ -1,0 +1,15 @@
+sudo: required
+
+language: bash
+
+services:
+  - docker
+
+install:
+  - echo $TRAVIS_COMMIT
+  - echo $TRAVIS_COMMIT > REVISION
+  - docker network create syrup-router_api-tests
+  - docker-compose build tests
+
+script:
+  - docker-compose run --rm tests ./vendor/bin/phpunit
