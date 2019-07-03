@@ -253,6 +253,18 @@
 				}
 			}
 		},
+		"TriggerOrchestration": {
+			"httpMethod": "POST",
+			"uri": "orchestrations/{orchestrationId}/trigger",
+			"summary": "Manualy execute orchestration",
+			"parameters": {
+				"orchestrationId": {
+					"location": "uri",
+					"type": "integer",
+					"required": true
+				}
+			}
+		},
 		"CreateJob": {
 			"httpMethod": "POST",
 			"uri": "orchestrations/{orchestrationId}/jobs",

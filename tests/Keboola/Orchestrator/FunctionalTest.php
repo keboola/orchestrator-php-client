@@ -229,4 +229,50 @@ class FunctionalTest extends AbstractFunctionalTest
 			$this->assertEquals('JOB_VALIDATION', $response['code']);
 		}
 	}
+
+	public function testOrchestrationTrigger()
+	{
+		// create orchestration
+		$orchestration = $this->client->createOrchestration(sprintf('%s %s', self::TESTING_ORCHESTRATION_NAME, uniqid()));
+
+		$this->assertArrayHasKey('id', $orchestration);
+
+		// setup tasks and notifications
+		$task = new OrchestrationTask();
+		$task->setActive(true)
+			->setContinueOnFailure(true)
+			->setComponent(self::TESTING_COMPONENT_ID)
+			->setAction('run')
+			->setActionParameters(['config' => $this->testComponentConfigurationId])
+		;
+
+		$options = [
+			'notifications' => [
+				[
+					'email' => FUNCTIONAL_ERROR_NOTIFICATION_EMAIL,
+					'channel' => 'error',
+				],
+			],
+			'tasks' => [
+				$task->toArray(),
+			]
+		];
+
+		$orchestration = $this->client->updateOrchestration($orchestration['id'], $options);
+
+		$job = $this->client->triggerOrchestration($orchestration['id']);
+
+		$job = $this->waitForJobFinish($job['id']);
+
+		$this->assertArrayHasKey('status', $job);
+		$this->assertEquals('success', $job['status']);
+
+		$this->assertArrayHasKey('tasks', $job);
+		$this->assertCount(1, $job['tasks']);
+
+		$this->assertEquals(reset($orchestration['tasks']), reset($job['tasks']));
+
+		$this->assertArrayHasKey('notificationsEmails', $job);
+		$this->assertEmpty($job['notificationsEmails']);
+	}
 }

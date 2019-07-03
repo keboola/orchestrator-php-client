@@ -228,6 +228,19 @@ class Client extends GuzzleClient
 	}
 
 	/**
+	 * Trigger orchestration execution
+	 *
+	 * @param $orchestrationId
+	 * @return mixed
+	 */
+	public function triggerOrchestration($orchestrationId)
+	{
+		$params = array('orchestrationId' => $orchestrationId);
+
+		return $this->getCommand('TriggerOrchestration', $params)->execute();
+	}
+
+	/**
 	 * Cancel waiting job
 	 *
 	 * @param int $jobId
