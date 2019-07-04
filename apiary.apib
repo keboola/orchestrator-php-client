@@ -252,6 +252,21 @@ These attributes can be updated:
 
     [Manage Orchestration][]
 
+## Trigger Orchestration [/orchestrations/{id}/trigger]
+
+### Trigger Orchestration [POST]
+
+Creates and enqueues a new orchestration job.
+Job runs all orchestration tasks and preserve configuration of orchestration notifications.
+
+Returns HTTP 409 error if orchestration is marked as disabled.
+
++ Request (application/json)
+
++ Response 202
+
+    [Manage Job][]
+
 ## Orchestration Tasks [/orchestrations/{orchestration_id}/tasks]
 
 Each task defines action to be executed such as transformations run or Facebook extractor run.
