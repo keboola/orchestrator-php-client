@@ -1,0 +1,617 @@
+FORMAT: 1A
+HOST: https://syrup.keboola.com/orchestrator
+
+# Keboola Orchestrator API
+
+Orchestrator is responsible for jobs scheduling, execution and monitoring.
+
+
+Orchestrator is composed by:
+
+ - **Scheduler** - Creates and enqueues jobs for processing from registered orchestrations based on their timing information
+ - **Runner** - Executes jobs from queue
+
+
+### HTTP Headers
+
+All requests should contain these headers:
+
+* `X-StorageApi-Token`  - Storage API token used for authentification
+
+
+# Group Orchestrations
+
+## Orchestrations Collection [/orchestrations]
+
++ Model (application/json)
+
+    ```js
+    [
+        {
+          "id": 2362,
+          "name": "Main orchestrator",
+          "crontabRecord": "0 * * * *",
+          "createdTime": "2013-03-02T11:11:24+01:00",
+          "lastScheduledTime": null,
+          "nextScheduledTime": "2013-03-02T11:12:00+01:00",
+          "active": true,
+          "token": {
+            "id": 1661,
+            "description": "Orchestrator token"
+          },
+          "uri": "http://keboolaorchestratorv2api.apiary-mock.com/orchestrations/2362"
+        }
+    ]
+    ```
+
+### Create a Orchestration [POST]
+Create a new Orchestration. New Storage API token with `canManageBuckets` and `canReadAllFileUploads` permissions will be created and saved with orchestration. It will be used by orchestration to execute jobs. You can change assigned token later.
+
+
+#### Body Parameters
+
+* `name` - Orchestrator name
+* `crontabRecord` - *(optional)* Execution schedule in [crontab format](http://en.wikipedia.org/wiki/Cron#Predefined_scheduling_definitions). Note that times should be in UTC.
+* `tokenId` - *(optional)* (integer) Storage API token id for orchestration execution *(New token will be created if not set)*
+* `notifications` - *(optional)* (array) Array of [notifiations](#reference/orchestrations/orchestration-notifications/create-a-orchestration)
+* `tasks` - *(optional)* (array) Array of [tasks](#reference/orchestrations/orchestration-tasks)
+
++ Request (application/json)
+
+    + Body
+
+        ```js
+        {
+            "name": "Main orchestrator",
+            "crontabRecord": "0 * * * *",
+            "tokenId": 1661,
+            "notifications": [
+                {
+                    "email": "someone@somewhere.com",
+                    "channel": "error",
+                    "parameters": {
+                    }
+                },
+                {
+                    "email": "someone@somewhere.com",
+                    "channel": "waiting",
+                    "parameters": {
+                        "timeout": 10
+                    }
+                },
+                {
+                    "email": "someone@somewhere.com",
+                    "channel": "processing",
+                    "parameters": {
+                        "tolerance": 20
+                    }
+                }
+            ],
+            "tasks": [
+                {
+                    "component": "ex-facebook",
+                    "action": "run",
+                    "actionParameters": {},
+                    "continueOnFailure": false,
+                    "timeoutMinutes": null,
+                    "active": true
+                },
+                {
+                    "component": "transformation",
+                    "action": "run",
+                    "actionParameters": {},
+                    "continueOnFailure": false,
+                    "timeoutMinutes": null,
+                    "active": true
+                },
+                {
+                    "componentUrl": "https://syrup.keboola.com/gooddata-writer/execute-reports",
+                    "actionParameters": {},
+                    "continueOnFailure": true,
+                    "timeoutMinutes": 10,
+                    "active": true
+                }
+            ]
+        }
+        ```
+
+
++ Response 201
+
+    [Manage Orchestration][]
+
+### Retrive all Orchestrations [GET]
+Retrieves all orchestrations.
+
++ Response 200
+
+    [Orchestrations Collection][]
+
+## Manage Orchestration [/orchestrations/{id}]
+
+Orchestration tells you what should be executed and when it should be executed, what is specified with simple list of tasks represented by URLS (external API calls) and when is specified with crontab record syntax.
+
++ Parameters
+    + id (string, `123`) ... The id of Orchestrations
+
++ Model (application/json)
+
+    ```js
+    {
+      "id": 2362,
+      "name": "Main orchestrator",
+      "crontabRecord": "0 * * * *",
+      "createdTime": "2013-03-02T11:11:24+01:00",
+      "lastScheduledTime": null,
+      "nextScheduledTime": "2013-03-02T11:12:00+01:00",
+      "active": true,
+      "token": {
+        "id":1661,
+        "description": "Orchestrator token"
+      },
+      "uri": "http://keboolaorchestratorv2api.apiary-mock.com/orchestrations/2362",
+      "notifications": [
+        {
+            "email": "someone@somewhere.com",
+            "channel": "error",
+            "parameters": {
+            }
+        },
+        {
+            "email": "someone@somewhere.com",
+            "channel": "waiting",
+            "parameters": {
+                "timeout": 10
+            }
+        },
+        {
+            "email": "someone@somewhere.com",
+            "channel": "processing",
+            "parameters": {
+                "tolerance": 20
+            }
+        }
+      ],
+      "tasks": [
+        {
+            "component": "ex-facebook",
+            "action": "run",
+            "actionParameters": {},
+            "continueOnFailure": false,
+            "timeoutMinutes": null,
+            "active": true
+        },
+        {
+            "component": "transformation",
+            "action": "run",
+            "actionParameters": {},
+            "continueOnFailure": false,
+            "timeoutMinutes": null,
+            "active": true
+        },
+        {
+            "componentUrl": "https://syrup.keboola.com/gooddata-writer/execute-reports",
+            "actionParameters": {},
+            "continueOnFailure": true,
+            "timeoutMinutes": 10,
+            "active": true
+        }
+      ]
+    }
+    ```
+
+### Retrieve a Orchestration [GET]
+Returns a specific Orchestration.
+
++ Response 200
+
+    [Manage Orchestration][]
+
+### Update a Orchestration [PUT]
+
+These attributes can be updated:
+
+* `active` - *(optional)* (boolean) Active flag
+* `name` - *(optional)* Orchestrator name
+* `crontabRecord` - *(optional)* Execution schedule in [crontab format](http://en.wikipedia.org/wiki/Cron#Predefined_scheduling_definitions). Note that times should be in UTC.
+* `tokenId` - *(optional)* (integer) Existing Storage API token id for orchestration execution
+* `notifications` - *(optional)* (array) Array of [notifiations](#reference/orchestrations/orchestration-notifications/create-a-orchestration)
+* `tasks` - *(optional)* (array) Array of [tasks](#reference/orchestrations/orchestration-tasks)
+
+
++ Request (application/json)
+
+    + Body
+
+        ```js
+        {
+            "active": false
+        }
+        ```
+
++ Response 200
+
+    [Manage Orchestration][]
+
+### Delete a Orchestration [DELETE]
+
++ Response 204
+
+## Refresh Orchestration Token [/orchestrations/{id}/create-token]
+
+### Refresh Orchestration Token [POST]
+
++ Request (application/json)
+    + Body
+
+        ```js
+        {
+        }
+        ```
++ Response 200
+
+    [Manage Orchestration][]
+
+## Trigger Orchestration [/orchestrations/{id}/trigger]
+
+### Trigger Orchestration [POST]
+
+Creates and enqueues a new orchestration job.
+Job runs all orchestration tasks and preserve configuration of orchestration notifications.
+
+Returns HTTP 409 error if orchestration is marked as disabled.
+
++ Request (application/json)
+
++ Response 202
+
+    [Manage Job][]
+
+## Orchestration Tasks [/orchestrations/{orchestration_id}/tasks]
+
+Each task defines action to be executed such as transformations run or Facebook extractor run.
+
+Task attributes:
+
+* `component` - *(optional)* Name of component to be executed
+* `componentUrl` - *(optional)* URL of component to be executed. Only **https protocol** is allowed
+* `action` - *(optional)* Name of action  e.g. `run`
+* `actionParameters` - *(optional)* Parameters JSON
+* `continueOnFailure` - *(optional)* (boolean) If orchestration should continue to following tasks or end with error
+* `active` - *(optional)* (boolean) If task is not active it is skipped
+* `timeoutMinutes` - *(optional)* (integer) Max. task running time
+
+One of `component` and `componentUrl` **must be set**.
+
++ Parameters
+    + orchestration_id (string, `123`) ... The id of Orchestration
+
++ Model (application/json)
+
+    ```js
+    [
+        {
+            "component": "ex-facebook",
+            "action": "run",
+            "actionParameters": {},
+            "continueOnFailure": false,
+            "timeoutMinutes": null,
+            "active": true
+        },
+        {
+            "component": "transformation",
+            "action": "run",
+            "actionParameters": {},
+            "continueOnFailure": false,
+            "timeoutMinutes": null,
+            "active": true
+        },
+        {
+            "componentUrl": "https://syrup.keboola.com/gooddata-writer/execute-reports",
+            "actionParameters": {},
+            "continueOnFailure": true,
+            "timeoutMinutes": 10,
+            "active": true
+        }
+    ]
+    ```
+
+### Retrieve all Orchestration tasks [GET]
+
++ Response 200
+
+    [Orchestration Tasks][]
+
+### Update orchestration tasks [PUT]
+
++ Response 202
+
+    [Orchestration Tasks][]
+
+
+## Orchestration Notifications [/orchestrations/{orchestration_id}/nofitications]
+
+You can subscribe to some abnormal events in orchestration jobs processing
+
+**Notification attributes:**
+
+* `email` - Subscribed email address
+* `channel` - Type of event `error`, `waiting` or `processing`
+* `parameters` - *(optional)* Array with configuration for specified channel
+
+**Channel types:**
+
+* `error` - Orchestration job finished execution with *error* status
+    * *Has any configuration parameters*
+* `waiting` - Orchestration job is long waiting for execution start
+    * `timeout` (integer) - Waiting timeout in minutes
+* `processing` - Orchestration job is still processing, abnormally longer than previous jobs
+    * `tolerance` (integer) - Tolerance in percents from average processing time (AVG is calculated from last 20 jobs)
+
+
++ Parameters
+    + orchestration_id (string, `123`) ... The id of Orchestration
+
+
++ Model (application/json)
+
+    ```js
+    [
+        {
+            "email": "someone@somewhere.com",
+            "channel": "error",
+            "parameters": {
+            }
+        },
+        {
+            "email": "someone@somewhere.com",
+            "channel": "waiting",
+            "parameters": {
+                "timeout": 10
+            }
+        },
+        {
+            "email": "someone@somewhere.com",
+            "channel": "processing",
+            "parameters": {
+                "tolerance": 20
+            }
+        }
+    ]
+    ```
+
+### Retrieve all Orchestration notifications [GET]
+Get all subscribed notifications
+
++ Response 200
+
+    [Orchestration Notifications][]
+
+### Update orchestration notifications [PUT]
+Modify subscribed notifications
+
++ Response 202
+
+    [Orchestration Notifications][]
+
+
+# Group Jobs
+
+Each orchestration execution is represented by job.
+
+`Job` represents a single execution of one orchestration - it is create either by scheduler or manually by Orchestrator API.
+Logs and status informations are attached to Jobs, jobs are never deleted and can be accessed by API.
+Job is is composed of multiple tasks, each task is one call to some external API which compiles with http://docs.keboolaconnector.apiary.io/, tasks are executed one by one. Whe one task fails whole orchestration
+end up with error and possible next tasks aren't executed. Registered Storage API token is propagated to all defined tasks.
+
+
+### Job lifetime
+
+* Job is created (by scheduler or manually through the API). It's status is `waiting`, job is waiting in processing queue.
+* Job is fetched from queue by worker. It's status is changed to `processing`.
+* Job execution is done, job is deleted from queue. It's status is changed to `error`, `success` or `warning` depending on job tasks results.
+
+
+* Waiting jobs can be cancelled (through the API). It's status will changed to `cancelled` .
+
+
+### Job structure
+
+* `id` - job id
+* `orchestrationId` - ID of parent orchestration
+* `createdTime` - Creation time of job
+* `startTime` - Time of job execution start
+* `endTime` - Time of job execution end
+* `status` - Job status, one of `cancelled`, `waiting`, `processing`, `error`, `success` or `warning`
+* `initializedBy` - How the job was created, it could be crated `manually` or by `scheduler`
+* `token` - Informations about used token, containing token ID and description
+* `initiatorToken` - Informations about creator of job, containing token ID, description and browser's user agent
+* `results` - Informations about job execution
+* `tasks` - List of tasks in job execution
+* `notificationsEmails`
+* `runId` - Run identificator for logging associated to job
+
+
+## Jobs Collection [/orchestrations/{orchestration_id}/jobs{?limit,offset}]
+
++ Parameters
+
+    + orchestration_id (string, `123`) ... The id of Orchestration
+    + limit = `20` (optional, number) ... Number of returned events.
+    + offset = `0` (optional, number) ... Pagination offset
+
+
+
++ Model (application/json)
+
+    + Headers
+
+            X-Total-Count: 35
+
+    + Body
+
+            [
+                {
+                  "id": 123,
+                  "orchestrationId": 2362,
+                  "createdTime": "2013-03-02T11:11:24+01:00",
+                  "startTime": null,
+                  "endTime": "2013-03-02T11:11:50+01:00",
+                  "status": "cancelled",
+                  "initializedBy": "manually",
+                  "token": {
+                    "id":1661,
+                    "description": "Orchestrator token"
+                  },
+                  "initiatorToken": {
+                    "id":1661,
+                    "description": "Orchestrator token",
+                    "userAgent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"
+                  },
+                  "results": null,
+                  "notificationsEmails": [],
+                  "runId": 123,
+                  "uri": "http://keboolaorchestratorv2api.apiary-mock.com/orchestrations/2362"
+                }
+            ]
+
+
+
+### Create new job [POST]
+This performs manual orchestration execution.
+
+Creates new job for orchestration, job processing should be started immediatelly.
+You can then monitor job status by polling job resource.
+
+
+
+Job attributes:
+
+* `notificationsEmails` - *(optional)* Array of emails. Where will be send notification email. if job fails.
+* `tasks` - *(optional)* Array of [tasks](#reference/orchestrations/orchestration-tasks) to execute. Array must contains all orchestration tasks, in same order. But you can customize `active` parameter to enable/disable them for this run.
+
++ Parameters
+    + orchestration_id (string, `1s23`) ... The id of Orchestration
+
++ Request (application/json)
+
+    + Body
+
+        ```js
+        {
+                "notificationsEmails": ["notify@me.com"],
+                "tasks": [
+                    {
+                        "component": "ex-facebook",
+                        "action": "run",
+                        "actionParameters": {},
+                        "continueOnFailure": false,
+                        "timeoutMinutes": null,
+                        "active": false
+                    },
+                    {
+                        "component": "transformation",
+                        "action": "run",
+                        "actionParameters": {},
+                        "continueOnFailure": false,
+                        "timeoutMinutes": null,
+                        "active": false
+                    },
+                    {
+                        "componentUrl": "https://syrup.keboola.com/gooddata-writer/execute-reports",
+                        "actionParameters": {},
+                        "continueOnFailure": true,
+                        "timeoutMinutes": 10,
+                        "active": true
+                    }
+                ]
+        }
+        ```
+
++ Response 201
+
+    [Manage Job][]
+
+
+### Retrieve all Orchestration jobs [GET]
+Returns a paginated list of jobs.
+
+* `X-Total-Count` - Response header containing number of orchestration jobs
+
++ Response 200
+
+    [Jobs Collection][]
+
+
+## Manage Job [/jobs/{id}]
+
++ Parameters
+    + id (string, `123`) ... The id of Job
+
++ Model (application/json)
+
+    ```js
+    {
+        "id": 123,
+        "orchestrationId": 2362,
+        "createdTime": "2013-03-02T11:11:24+01:00",
+        "startTime": null,
+        "endTime": "2013-03-02T11:11:50+01:00",
+        "status": "cancelled",
+        "initializedBy": "manually",
+        "token": {
+        "id":1661,
+            "description": "Orchestrator token"
+        },
+        "initiatorToken": {
+            "id":1661,
+            "description": "Orchestrator token",
+            "userAgent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"
+        },
+        "results": null,
+        "notificationsEmails": [],
+        "tasks": [
+            {
+                "component": "ex-facebook",
+                "action": "run",
+                "actionParameters": {},
+                "continueOnFailure": false,
+                "timeoutMinutes": null,
+                "active": false
+                },
+            {
+                "component": "transformation",
+                "action": "run",
+                "actionParameters": {},
+                "continueOnFailure": false,
+                "timeoutMinutes": null,
+                "active": false
+                },
+            {
+                "componentUrl": "https://syrup.keboola.com/gooddata-writer/execute-reports",
+                "actionParameters": {},
+                "continueOnFailure": true,
+                "timeoutMinutes": 10,
+                "active": true
+            }
+        ]
+        "runId": 123,
+        "uri": "http://keboolaorchestratorv2api.apiary-mock.com/orchestrations/2362"
+    }
+    ```
+
+### Retrieve a Job [GET]
+Returns a specific Job.
+
++ Response 200
+
+    [Manage Job][]
+
+### Cancel orchestration job [DELETE]
+Only waiting job can be canceled.
+
++ Response 204
+
+
+
+
