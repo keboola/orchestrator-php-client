@@ -76,7 +76,7 @@ ERROR_NOTIFICATION_EMAIL={your_email}
 Build image and run tests
 
 ```bash
-docker network create syrup-router_api-tests
+docker network create orchestrator-router_api-tests
 docker-compose build tests
 docker-compose run --rm tests ./vendor/bin/phpunit
 ``` 
