@@ -18,4 +18,4 @@ services:
 networks:
   default:
     external:
-      name: syrup-router_api-tests
+      name: orchestrator-router_api-tests
