@@ -124,7 +124,7 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
 		// update extractor credentials
 		$parameters['db'] = [
 			'host' => $workspace['connection']['host'],
-			'port' => null,
+			'port' => 443,
 			'database' => $workspace['connection']['database'],
 			'schema' => $workspace['connection']['schema'],
 			'warehouse' => $workspace['connection']['warehouse'],
