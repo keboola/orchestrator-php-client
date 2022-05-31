@@ -80,3 +80,7 @@ docker network create orchestrator-router_api-tests
 docker-compose build tests
 docker-compose run --rm tests ./vendor/bin/phpunit
 ``` 
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
