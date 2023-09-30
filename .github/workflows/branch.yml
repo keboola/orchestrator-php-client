@@ -3,6 +3,11 @@ name: Branch workflow
 env:
   GH_COMMIT_SHA: ${{ github.sha }}
 
+on:
+  push:
+    branches:
+      - "*"
+
 jobs:
   build-and-test:
     name: "Build and test"
