@@ -1,6 +1,6 @@
 # Keboola Orchestrator API PHP client
 
-[![Build Status](https://travis-ci.com/keboola/orchestrator-php-client.svg?branch=master)](https://travis-ci.com/keboola/orchestrator-php-client)
+[![Branch workflow](https://github.com/keboola/orchestrator-php-client/actions/workflows/branch.yml/badge.svg?branch=master)](https://github.com/keboola/orchestrator-php-client/actions/workflows/branch.yml)
 
 Simple PHP wrapper library for [Keboola Orchestrator REST API](http://docs.keboolaorchestratorv2api.apiary.io/)
 
@@ -42,20 +42,18 @@ Execute all orchestrations in KBC project example:
 ```php
 use Keboola\Orchestrator\Client;
 
-		$client = Client::factory(array(
-			'token' => 'YOUR_TOKEN',
-		));
+$client = Client::factory(array(
+    'token' => 'YOUR_TOKEN',
+));
 
-		// retrieve all orchestrations in KBC project
-		$orchestrations = $client->getOrchestrations();
+// retrieve all orchestrations in KBC project
+$orchestrations = $client->getOrchestrations();
 
-		foreach ($orchestrations AS $orchestration) {
-			// manually execute orchestration
-			$client->createJob($orchestration['id']);
-		}
+foreach ($orchestrations AS $orchestration) {
+    // manually execute orchestration
+    $client->createJob($orchestration['id']);
+}
 ```
-
-
 
 ## Tests
 
@@ -80,3 +78,7 @@ docker network create orchestrator-router_api-tests
 docker-compose build tests
 docker-compose run --rm tests ./vendor/bin/phpunit
 ``` 
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.

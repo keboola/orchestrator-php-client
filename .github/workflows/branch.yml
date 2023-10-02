@@ -1,0 +1,27 @@
+name: Branch workflow
+
+env:
+  GH_COMMIT_SHA: ${{ github.sha }}
+  ERROR_NOTIFICATION_EMAIL: ${{ vars.ERROR_NOTIFICATION_EMAIL }}
+  ORCHESTRATOR_API_TOKEN: ${{ secrets.ORCHESTRATOR_API_TOKEN }}
+  ORCHESTRATOR_API_URL: "https://syrup.us-east-1.keboola-testing.com/orchestrator"
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  build-and-test:
+    name: "Build and test"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+      - name: "Build images"
+        run: |
+          echo $GH_COMMIT_SHA > REVISION
+          docker network create orchestrator-router_api-tests
+          docker-compose build tests
+      - name: "Run phpunit"
+        run: docker-compose run --rm tests ./vendor/bin/phpunit

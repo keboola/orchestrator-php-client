@@ -1,8 +1,10 @@
 FROM php:5.6-cli
 
+COPY docker/sources.list /etc/apt/sources.list
+
 # Deps
-RUN apt-get update
-RUN apt-get install -y wget curl git bzip2 time libzip-dev unzip
+RUN apt-get update -q \
+  && apt-get install wget curl git bzip2 time libzip-dev unzip -y --no-install-recommends
 
 # Composer
 WORKDIR /root
